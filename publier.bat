@@ -7,6 +7,9 @@ rem =============================================================
 cd /d "%~dp0"
 echo Envoi des modifications vers GitHub...
 echo.
+rem Nouveau numero de version (date et heure) : oblige les navigateurs
+rem a charger les nouveaux fichiers au lieu de leur ancienne copie.
+powershell -NoProfile -Command "Get-Date -Format yyyyMMddHHmmss | Out-File -Encoding ascii version.txt"
 git add -A
 git commit -m "Mise a jour du jeu"
 git push

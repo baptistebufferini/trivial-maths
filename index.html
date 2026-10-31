@@ -4,7 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Trivial Maths</title>
-  <link rel="stylesheet" href="css/style.css">
+  <!-- La feuille de style est ajoutée par le chargeur en bas de page.
+       En attendant, on cache la page pour éviter un affichage sans mise en forme. -->
+  <link id="feuille-style" rel="stylesheet">
+  <style>html:not(.pret) body { visibility: hidden; }</style>
 </head>
 <body>
 
@@ -96,13 +99,37 @@
 
   <!-- SheetJS : bibliothèque gratuite qui sait lire les fichiers Excel. -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <!-- Les scripts du jeu, dans l'ordre : réglages, données, outils, puis le jeu. -->
-  <script src="js/config.js"></script>
-  <script src="data/demo.js"></script>
-  <script src="js/csv.js"></script>
-  <script src="js/verification.js"></script>
-  <script src="js/banque.js"></script>
-  <script src="js/plateau.js"></script>
-  <script src="js/jeu.js"></script>
+  <!-- CHARGEUR : lit le numéro de version (version.txt, toujours relu
+       sur GitHub), puis charge le style et les scripts du jeu avec ce numéro.
+       Ainsi, après une publication, les navigateurs ne peuvent pas garder
+       une ancienne copie des fichiers. -->
+  <script>
+    (async function () {
+      let version = Date.now();   // si version.txt est illisible : toujours neuf
+      try {
+        const reponse = await fetch('version.txt', { cache: 'no-store' });
+        if (reponse.ok) version = (await reponse.text()).trim();
+      } catch (e) { /* jeu ouvert par double-clic : on garde Date.now() */ }
+
+      // 1) Le style, puis on affiche la page.
+      const style = document.getElementById('feuille-style');
+      style.onload = style.onerror = () => document.documentElement.classList.add('pret');
+      style.href = 'css/style.css?v=' + version;
+
+      // 2) Les scripts du jeu, un par un et dans l'ordre :
+      //    réglages, données, outils, puis le jeu.
+      const scripts = ['js/config.js', 'data/demo.js', 'js/csv.js', 'js/verification.js',
+                       'js/banque.js', 'js/plateau.js', 'js/jeu.js'];
+      for (const fichier of scripts) {
+        await new Promise((suite, erreur) => {
+          const s = document.createElement('script');
+          s.src = fichier + '?v=' + version;
+          s.onload = suite;
+          s.onerror = () => erreur(new Error('Impossible de charger ' + fichier));
+          document.body.appendChild(s);
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
