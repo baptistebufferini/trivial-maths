@@ -55,6 +55,11 @@ const COULEURS_PIONS = [
 // Mettre false pour que le tour passe toujours au joueur suivant.
 const REJOUER_APRES_BONNE_REPONSE = true;
 
+// Nombre maximum de déplacements d'affilée pour un même joueur
+// (bonnes réponses et cases « Rejouer » comprises). Ensuite, la main
+// passe au joueur suivant, pour que tout le monde joue.
+const MAX_DEPLACEMENTS_AFFILEE = 3;
+
 // L'adversaire virtuel, proposé quand un joueur est seul.
 // - reussite : pourcentage de bonnes réponses de l'adversaire
 const ADVERSAIRE_NOM = 'Calculo';

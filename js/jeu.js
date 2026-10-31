@@ -12,6 +12,7 @@ const etat = {
   objectif: 5,        // nombre de camemberts à gagner
   phase: 'lancer',    // 'lancer' | 'roulement' | 'deplacer' | 'question' | 'fin'
   destinations: [],   // cases accessibles après le lancer de dé
+  deplacements: 0,    // déplacements d'affilée du joueur en cours
   question: null,     // { q, themeId, estCamembert } : question en cours
 };
 
@@ -165,6 +166,7 @@ function commencerPartie() {
     });
   }
   etat.courant = 0;
+  etat.deplacements = 0;
   Banque.dejaPosees.clear();
 
   $('ecran-accueil').classList.add('cache');
@@ -247,6 +249,7 @@ function clicSurCase(id) {
   if (etat.phase !== 'deplacer' || !etat.destinations.includes(id)) return;
   Plateau.surligner([]);
   joueur().position = id;
+  etat.deplacements++;
   Plateau.placerPions(etat.joueurs);
   etat.phase = 'question';
   // On attend la fin du déplacement du pion avant d'afficher la suite.
@@ -255,7 +258,8 @@ function clicSurCase(id) {
 
 function arriverSurCase(c) {
   if (c.type === 'rejouer') {
-    debutTour('Case « Rejouer » !');
+    if (peutRejouer()) debutTour('Case « Rejouer » !');
+    else joueurSuivant(`Case « Rejouer »… mais ${MAX_DEPLACEMENTS_AFFILEE} déplacements d'affilée : on passe la main.`);
   } else if (c.type === 'centre') {
     ouvrirChoixTheme();
   } else {
@@ -445,12 +449,22 @@ function apresQuestion(juste) {
     texte = `${j.nom} gagne le camembert « ${themeDuJoueur(j, themeId).nom} » !`;
     if (j.camemberts.size >= etat.objectif) { victoire(j); return; }
   }
-  if (juste && REJOUER_APRES_BONNE_REPONSE) debutTour(texte + ' On rejoue.');
-  else joueurSuivant(texte);
+  if (juste && REJOUER_APRES_BONNE_REPONSE) {
+    if (peutRejouer()) debutTour(texte + ' On rejoue.');
+    else joueurSuivant(texte + ` ${MAX_DEPLACEMENTS_AFFILEE} déplacements d'affilée : on passe la main.`);
+  } else {
+    joueurSuivant(texte);
+  }
+}
+
+// Le joueur a-t-il encore droit à un déplacement d'affilée ?
+function peutRejouer() {
+  return etat.deplacements < MAX_DEPLACEMENTS_AFFILEE;
 }
 
 function joueurSuivant(texte) {
   etat.courant = (etat.courant + 1) % etat.joueurs.length;
+  etat.deplacements = 0;   // le nouveau joueur repart à zéro
   debutTour(texte);
 }
 
