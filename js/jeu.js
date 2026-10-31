@@ -26,8 +26,25 @@ const brouillon = COULEURS_PIONS.map((pion, i) => ({
   nom: '',
   couleur: i,        // numéro dans COULEURS_PIONS
   niveau: '5e',
+  chapitre: '',      // code du chapitre en cours ('' = premier chapitre)
 }));
 let nombreJoueurs = 2;
+
+// On retrouve les réglages de la dernière partie sur cet appareil
+// (prénoms, niveaux, chapitres). Ils ne quittent jamais l'appareil.
+try {
+  const memoire = JSON.parse(localStorage.getItem('trivial-maths-joueurs'));
+  if (memoire) {
+    nombreJoueurs = memoire.nombreJoueurs;
+    memoire.joueurs.forEach((j, i) => Object.assign(brouillon[i], j));
+  }
+} catch (e) { /* pas de mémoire disponible : tant pis */ }
+
+function memoriserJoueurs() {
+  try {
+    localStorage.setItem('trivial-maths-joueurs', JSON.stringify({ nombreJoueurs, joueurs: brouillon }));
+  } catch (e) { /* idem */ }
+}
 // Niveau de l'adversaire virtuel (numéro dans NIVEAUX_ADVERSAIRE),
 // ou null = pas d'adversaire. Par défaut : « Moyen ».
 let adversaire = 1;
@@ -77,9 +94,22 @@ function afficherAccueil() {
     niveau.setAttribute('aria-label', `Niveau ${i + 1}`);
     [...NIVEAUX, 'parents'].forEach(n => niveau.add(new Option(n === 'parents' ? 'Parents' : n, n)));
     niveau.value = r.niveau;
-    niveau.onchange = () => { r.niveau = niveau.value; };
+    // Changer de niveau change la liste des chapitres : on réaffiche.
+    niveau.onchange = () => { r.niveau = niveau.value; r.chapitre = ''; afficherAccueil(); };
 
-    ligne.append(pastille, nom, couleur, niveau);
+    // Chapitre en cours (pas pour les parents, qui ont tout le programme)
+    const chapitre = document.createElement('select');
+    chapitre.className = 'choix-chapitre';
+    chapitre.setAttribute('aria-label', `Chapitre en cours ${i + 1}`);
+    const chapitres = Banque.chapitresDu(r.niveau);
+    chapitres.forEach(c => chapitre.add(new Option(c.titre, c.chapitre)));
+    if (!chapitres.some(c => c.chapitre === r.chapitre)) r.chapitre = chapitres.length ? chapitres[0].chapitre : '';
+    chapitre.value = r.chapitre;
+    chapitre.onchange = () => { r.chapitre = chapitre.value; };
+    chapitre.title = 'Chapitre en cours en classe';
+    if (r.niveau === 'parents' || chapitres.length === 0) chapitre.style.visibility = 'hidden';
+
+    ligne.append(pastille, nom, couleur, niveau, chapitre);
     liste.appendChild(ligne);
   }
 
@@ -112,10 +142,12 @@ function commencerPartie() {
     alert('Deux joueurs ont la même couleur de pion. Changez-en une pour pouvoir les distinguer.');
     return;
   }
+  memoriserJoueurs();
   etat.joueurs = choisis.map((r, i) => ({
     nom: r.nom.trim() || `Joueur ${i + 1}`,
     pion: COULEURS_PIONS[r.couleur],
     niveau: r.niveau,
+    chapitre: r.chapitre,
     position: 'centre',
     camemberts: new Set(),
   }));
@@ -126,6 +158,7 @@ function commencerPartie() {
       nom: ADVERSAIRE_NOM,
       pion: COULEURS_PIONS.find((p, k) => k !== choisis[0].couleur),
       niveau: choisis[0].niveau,
+      chapitre: choisis[0].chapitre,
       position: 'centre',
       camemberts: new Set(),
       robot: NIVEAUX_ADVERSAIRE[adversaire],   // { nom, reussite }
@@ -507,7 +540,6 @@ function retourAccueil() {
 // =============================================================
 
 async function demarrer() {
-  afficherAccueil();
   $('bouton-commencer').onclick = commencerPartie;
   $('bouton-de').onclick = () => { if (!joueur().robot) lancerDe(); };
   $('bouton-rejouer').onclick = retourAccueil;
@@ -515,10 +547,17 @@ async function demarrer() {
     if (confirm('Quitter la partie en cours ?')) retourAccueil();
   };
 
-  // Le lien peut contenir ?prof=baptiste
-  const codeProf = new URLSearchParams(location.search).get('prof');
-  await Banque.charger(codeProf ? codeProf.toLowerCase() : null);
+  // On charge les questions et les progressions, puis on affiche l'accueil
+  // (les listes de chapitres en ont besoin).
+  await Banque.charger();
+  afficherAccueil();
   $('info-chargement').textContent = Banque.messages.join('\n');
+  if (Banque.alertes.length > 0) {
+    $('alertes').textContent = '⚠ ' + Banque.alertes.join('\n\n⚠ ');
+    $('alertes').classList.remove('cache');
+  }
+  $('bouton-commencer').disabled = false;
+  $('bouton-commencer').textContent = 'Commencer la partie';
 }
 
 demarrer();

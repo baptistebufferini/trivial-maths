@@ -1,7 +1,8 @@
 // =============================================================
 // RÉGLAGES DU JEU
 // C'est le fichier à modifier pour les réglages courants :
-// couleurs, programme suivi par chaque niveau, liens des profs.
+// couleurs, programme suivi par chaque niveau, adversaire virtuel.
+// Les questions et les progressions, elles, sont dans data/banque.xlsx.
 // =============================================================
 
 // Les 5 thèmes (= les 5 couleurs du plateau), dans l'ordre autour de la roue.
@@ -63,16 +64,6 @@ const NIVEAUX_ADVERSAIRE = [
   { nom: 'Fort',   reussite: 90 },
 ];
 
-// Les profs et leur tableur de déblocage.
-// Le lien donné aux élèves est : adresse-du-jeu/?prof=baptiste
-// - deblocages : adresse du Google Sheet publié en CSV (étape 5).
-//                Tant qu'elle vaut null, on utilise la démo locale
-//                (fichier data/deblocages-demo.js).
-const PROFS = {
-  baptiste: { nom: 'M. Bufferini', deblocages: null },
-};
-
-// Adresse de la banque commune publiée en CSV (étape 5).
-// Tant qu'elle vaut null, on utilise les questions de démonstration
-// (fichier data/questions-demo.js).
-const URL_BANQUE = null;
+// Le fichier Excel qui contient les questions (onglet « Questions »)
+// et les progressions (onglet « Progressions »).
+const FICHIER_BANQUE = 'data/banque.xlsx';

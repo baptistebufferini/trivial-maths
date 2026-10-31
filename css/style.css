@@ -75,7 +75,7 @@ button:disabled { cursor: default; }
 
 .ligne-joueur {
   display: grid;
-  grid-template-columns: 2.2rem 1fr auto auto;
+  grid-template-columns: 2.2rem 1fr auto auto minmax(0, 1.3fr);
   gap: .5rem;
   align-items: center;
   margin-top: .7rem;
@@ -105,6 +105,18 @@ button:disabled { cursor: default; }
   font-weight: 700;
 }
 .bouton-principal:hover { filter: brightness(1.1); }
+.bouton-principal:disabled { opacity: .6; filter: none; }
+
+.alertes {
+  background: #fff4e0;
+  border: 2px solid #ef7d00;
+  border-radius: var(--rayon);
+  padding: .7rem 1rem;
+  margin-bottom: 1rem;
+  white-space: pre-line;
+  font-size: .9rem;
+}
+.alertes p { margin: .3rem 0; }
 
 .info { color: var(--texte-doux); font-size: .9rem; text-align: center; white-space: pre-line; }
 
@@ -296,8 +308,10 @@ button:disabled { cursor: default; }
   #plateau { height: auto; aspect-ratio: 1; }
   #panneau { border-left: none; border-top: 1px solid var(--bord); }
   .de #face-de { font-size: 2.6rem; }
-  .ligne-joueur { grid-template-columns: 2rem 1fr; }
-  .ligne-joueur select { grid-column: span 1; }
+  .ligne-joueur { grid-template-columns: 2rem 1fr 1fr; }
+  .ligne-joueur .pastille { grid-row: span 3; align-self: start; }
+  .ligne-joueur input { grid-column: span 2; }
+  .ligne-joueur .choix-chapitre { grid-column: 2 / span 2; }
   .enonce { font-size: 1.25rem; }
   .choix-qcm { grid-template-columns: 1fr; }
 }

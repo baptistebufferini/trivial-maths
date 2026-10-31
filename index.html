@@ -35,7 +35,8 @@
       </div>
     </div>
 
-    <button id="bouton-commencer" type="button" class="bouton-principal">Commencer la partie</button>
+    <div id="alertes" class="alertes cache"></div>
+    <button id="bouton-commencer" type="button" class="bouton-principal" disabled>Chargement des questions…</button>
     <p id="info-chargement" class="info"></p>
   </section>
 
@@ -93,10 +94,11 @@
     </div>
   </div>
 
-  <!-- Les scripts, dans l'ordre : réglages, données, outils, puis le jeu. -->
+  <!-- SheetJS : bibliothèque gratuite qui sait lire les fichiers Excel. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Les scripts du jeu, dans l'ordre : réglages, données, outils, puis le jeu. -->
   <script src="js/config.js"></script>
-  <script src="data/questions-demo.js"></script>
-  <script src="data/deblocages-demo.js"></script>
+  <script src="data/demo.js"></script>
   <script src="js/csv.js"></script>
   <script src="js/verification.js"></script>
   <script src="js/banque.js"></script>
