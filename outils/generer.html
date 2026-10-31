@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Générateur de questions</title>
+</head>
+<body>
+  <!-- Page utilisée par outils/importer.ps1 : elle fabrique les questions
+       d'un niveau (?niveau=4e) et les range dans le bloc « resultat ». -->
+  <script>const GENERATEURS = {};</script>
+  <script src="generateurs/outils.js"></script>
+  <script src="generateurs/4e.js"></script>
+  <script id="resultat" type="application/json"></script>
+  <script>
+    const niveau = new URLSearchParams(location.search).get('niveau') || '4e';
+    const questions = [], images = {}, bilan = [];
+
+    for (const g of GENERATEURS[niveau]) {
+      // Même graine à chaque fois : les questions ne changent pas d'une génération à l'autre.
+      initHasard(graineDe(niveau + '-' + g.code));
+      const dejaVues = new Set();
+      let fabriquees = 0, essais = 0;
+      while (fabriquees < g.nombre && essais < g.nombre * 80) {
+        essais++;
+        let q;
+        try { q = g.creer(); } catch (e) { bilan.push(`ERREUR ${g.code} : ${e.message}`); break; }
+        if (!q) continue;                                  // tirage refusé : on recommence
+        const cle = [q.enonce, q.svg || '', q.reponse, ...(q.faux || [])].join('|');
+        if (dejaVues.has(cle)) continue;                   // doublon : on recommence
+        dejaVues.add(cle);
+        fabriquees++;
+        const id = `G${niveau.charAt(0)}-${g.code}-${String(fabriquees).padStart(2, '0')}`;
+        let image = '';
+        if (q.svg) { image = `images/gen/${niveau}/${id}.svg`; images[image] = q.svg; }
+        const faux = q.faux || [];
+        questions.push({
+          id, theme: g.theme, niveau, programme: 'commun', chapitre: g.chapitre,
+          enonce: q.enonce, type: faux.length ? 'qcm' : 'saisie', reponse: q.reponse,
+          variantes: (q.variantes || []).join(' ; '), faux1: faux[0] || '', faux2: faux[1] || '', faux3: faux[2] || '',
+          correction: q.correction, image,
+        });
+      }
+      bilan.push(`${g.code} (${g.theme}) : ${fabriquees}/${g.nombre}`);
+    }
+
+    document.getElementById('resultat').textContent = JSON.stringify({ questions, images, bilan });
+    const pre = document.createElement('pre');
+    pre.textContent = `${questions.length} questions, ${Object.keys(images).length} figures\n` + bilan.join('\n');
+    document.body.appendChild(pre);
+  </script>
+</body>
+</html>

@@ -40,6 +40,20 @@ Jeu en ligne : https://baptistebufferini.github.io/trivial-maths/
 
 Si une ligne est incomplète, le jeu l'ignore et la signale en orange sur l'accueil.
 
+## Questions générées automatiquement
+
+Les questions dont l'identifiant commence par `G4-` (4e) sont fabriquées par des
+« générateurs » : de petits programmes, un par type de question, qui tirent des
+valeurs au hasard et calculent la réponse, la méthode et la figure éventuelle.
+
+- `outils/generateurs/outils.js` : outils communs (écriture des nombres, figures)
+- `outils/generateurs/4e.js` : les générateurs de 4e
+- `outils/importer.ps1` : remplace les lignes `G4-…` de banque.xlsx par une nouvelle génération
+  (Excel doit être fermé) et enregistre les figures dans `images/gen/4e/`
+
+Attention : relancer l'import remplace toutes les lignes `G4-…`. Pour corriger
+durablement une question générée, il vaut mieux corriger son générateur.
+
 ## Progressions
 
 Onglet **Progressions** : les chapitres de chaque niveau, dans l'ordre de l'année.
