@@ -188,7 +188,9 @@ function svgDroiteGraduee(debut, pas, nb, tousLes, rang, nom) {
 // « a » (horizontal) et « b » (vertical). noms = [sommet de l'angle droit,
 // bout du côté horizontal, bout du côté vertical] ; etiquettes = [horizontal,
 // vertical, hypoténuse] (texte, ou '' pour ne rien écrire).
-function svgTriangleRectangle(a, b, noms, etiquettes) {
+// angle (facultatif) : 1 ou 2 = marquer l'angle au sommet noms[1] ou noms[2],
+// avec le texte « texteAngle » (ex. « 30° »).
+function svgTriangleRectangle(a, b, noms, etiquettes, angle, texteAngle) {
   const echelle = Math.min(230 / a, 150 / b);
   const L = a * echelle, Hh = b * echelle;
   const ox = 84, oy = 28 + Hh;   // marge à gauche pour écrire la longueur du côté vertical
@@ -204,7 +206,114 @@ function svgTriangleRectangle(a, b, noms, etiquettes) {
   if (etiquettes[0]) s += texteSVG(ox + L / 2, oy + 22, etiquettes[0], 'text-anchor="middle" ' + style(etiquettes[0]));
   if (etiquettes[1]) s += texteSVG(ox - 8, oy - Hh / 2 + 5, etiquettes[1], 'text-anchor="end" ' + style(etiquettes[1]));
   if (etiquettes[2]) s += texteSVG(ox + L / 2 + 10, oy - Hh / 2 - 6, etiquettes[2], style(etiquettes[2]));
+  if (angle) {
+    // Arc de cercle entre les deux côtés partant du sommet choisi
+    const S = angle === 1 ? P : Q, U = R, V = angle === 1 ? Q : P;
+    const dir = (T) => Math.atan2(T[1] - S[1], T[0] - S[0]);
+    const a1 = dir(U), a2 = dir(V), rayon = 28;
+    const p1 = [S[0] + rayon * Math.cos(a1), S[1] + rayon * Math.sin(a1)];
+    const p2 = [S[0] + rayon * Math.cos(a2), S[1] + rayon * Math.sin(a2)];
+    const balayage = ((a2 - a1 + 2 * Math.PI) % (2 * Math.PI)) < Math.PI ? 1 : 0;
+    s += `<path d="M${p1.map(r1)} A${rayon},${rayon} 0 0 ${balayage} ${p2.map(r1)}" fill="none" stroke="${COULEUR_TRACE}" stroke-width="2"/>`;
+    if (texteAngle) {
+      const milieu = (a1 + a2) / 2 + (Math.abs(a2 - a1) > Math.PI ? Math.PI : 0);
+      s += texteSVG(S[0] + 46 * Math.cos(milieu), S[1] + 46 * Math.sin(milieu) + 5, texteAngle, `text-anchor="middle" font-weight="bold" fill="${COULEUR_TRACE}"`);
+    }
+  }
   return s + '</svg>';
+}
+
+// Configuration de Thalès : triangle A (en haut), B, C ; M sur [AB] et N sur [AC]
+// avec (MN) parallèle à (BC), au rapport « k » (AM/AB).
+function svgThales(k, noms) {
+  const [A, B, C, M, N] = noms;
+  const pA = [150, 24], pB = [40, 210], pC = [290, 210];
+  const pM = [pA[0] + k * (pB[0] - pA[0]), pA[1] + k * (pB[1] - pA[1])];
+  const pN = [pA[0] + k * (pC[0] - pA[0]), pA[1] + k * (pC[1] - pA[1])];
+  let s = enteteSVG(330, 240);
+  s += `<polygon points="${pA} ${pB} ${pC}" fill="#fde7f1" stroke="#222" stroke-width="2"/>`;
+  s += trait(pM[0], pM[1], pN[0], pN[1], COULEUR_TRACE, 2.5);
+  s += texteSVG(pA[0] - 5, pA[1] - 6, A, 'font-weight="bold"');
+  s += texteSVG(pB[0] - 16, pB[1] + 16, B, 'font-weight="bold"');
+  s += texteSVG(pC[0] + 6, pC[1] + 16, C, 'font-weight="bold"');
+  s += texteSVG(pM[0] - 18, pM[1] + 4, M, 'font-weight="bold"');
+  s += texteSVG(pN[0] + 7, pN[1] + 4, N, 'font-weight="bold"');
+  return s + '</svg>';
+}
+
+// Tableau de valeurs à deux lignes.
+function svgTableau(titre1, valeurs1, titre2, valeurs2) {
+  const lc = 56, lt = 62, h = 34;
+  const W = lt + lc * valeurs1.length + 2, H = 2 * h + 2;
+  let s = enteteSVG(W, H);
+  s += `<rect x="1" y="1" width="${W - 2}" height="${2 * h}" fill="none" stroke="#222" stroke-width="1.5"/>`;
+  s += `<rect x="1" y="1" width="${lt}" height="${2 * h}" fill="#eef0f4"/>`;
+  s += trait(1, h + 1, W - 1, h + 1);
+  for (let i = 0; i <= valeurs1.length; i++) s += trait(lt + 1 + i * lc, 1, lt + 1 + i * lc, 2 * h + 1);
+  s += texteSVG(lt / 2, h / 2 + 6, titre1, 'text-anchor="middle" font-style="italic"');
+  s += texteSVG(lt / 2, h * 1.5 + 6, titre2, 'text-anchor="middle" font-style="italic"');
+  valeurs1.forEach((v, i) => { s += texteSVG(lt + 1 + (i + 0.5) * lc, h / 2 + 6, v, 'text-anchor="middle"'); });
+  valeurs2.forEach((v, i) => { s += texteSVG(lt + 1 + (i + 0.5) * lc, h * 1.5 + 6, v, 'text-anchor="middle"'); });
+  return s + '</svg>';
+}
+
+// Courbe lisse passant exactement par des points (x, y) donnés, sans
+// « dépasser » entre deux points (interpolation monotone) : on peut donc
+// lire images et antécédents sans ambiguïté aux points de la grille.
+function courbeLisse(points, pasParSegment = 12) {
+  const n = points.length, d = [], m = [];
+  for (let i = 0; i < n - 1; i++) d.push((points[i + 1][1] - points[i][1]) / (points[i + 1][0] - points[i][0]));
+  for (let i = 0; i < n; i++) {
+    if (i === 0) m.push(d[0]);
+    else if (i === n - 1) m.push(d[n - 2]);
+    else m.push(d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2);
+  }
+  for (let i = 0; i < n - 1; i++) {
+    if (d[i] === 0) { m[i] = 0; m[i + 1] = 0; continue; }
+    const a = m[i] / d[i], b = m[i + 1] / d[i], t = a * a + b * b;
+    if (t > 9) { const tau = 3 / Math.sqrt(t); m[i] = tau * a * d[i]; m[i + 1] = tau * b * d[i]; }
+  }
+  const resultat = [];
+  for (let i = 0; i < n - 1; i++) {
+    const [x0, y0] = points[i], [x1, y1] = points[i + 1], h = x1 - x0;
+    for (let k = 0; k < pasParSegment; k++) {
+      const t = k / pasParSegment, t2 = t * t, t3 = t2 * t;
+      const y = (2 * t3 - 3 * t2 + 1) * y0 + (t3 - 2 * t2 + t) * h * m[i] + (-2 * t3 + 3 * t2) * y1 + (t3 - t2) * h * m[i + 1];
+      resultat.push([x0 + t * h, y]);
+    }
+  }
+  resultat.push(points[n - 1]);
+  return resultat;
+}
+
+// =============================================================
+// LISTES ET OUTILS PARTAGÉS PAR LES NIVEAUX
+// =============================================================
+
+const PRENOMS = ['Léa', 'Hugo', 'Inès', 'Noah', 'Jade', 'Lucas', 'Chloé', 'Adam', 'Emma', 'Nathan', 'Lina', 'Tom', 'Zoé', 'Yanis', 'Sarah', 'Malo'];
+const LETTRES_TRIANGLES = ['ABC', 'DEF', 'EFG', 'IJK', 'KLM', 'MNP', 'RST', 'UVW', 'PQR', 'XYZ'];
+const TRIPLETS = [[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 15, 17], [9, 12, 15], [12, 16, 20], [7, 24, 25], [1.5, 2, 2.5], [0.6, 0.8, 1], [15, 20, 25], [2.4, 3.2, 4], [10, 24, 26]];
+const CATEGORIES = [['Foot', 'Basket', 'Tennis', 'Judo', 'Danse'], ['Pomme', 'Banane', 'Kiwi', 'Poire', 'Fraise'], ['Bus', 'Vélo', 'À pied', 'Voiture'], ['Rouge', 'Bleu', 'Vert', 'Jaune', 'Noir']];
+
+// Un point est utilisable s'il n'est pas sur le bord du quadrillage
+// (sinon sa croix et sa lettre seraient coupées).
+function dansGrille(p, largeur, hauteur) {
+  return p.x >= 1 && p.y >= 1 && p.x <= largeur - 1 && p.y <= hauteur - 1;
+}
+
+// Nomme la bonne réponse (« cible ») et des points pièges distincts,
+// tous dans le quadrillage. La cible reçoit la première lettre.
+function pointsQuadrillage(cible, pieges, largeur, hauteur) {
+  const lettres = melangeH(['B', 'C', 'D', 'E', 'F', 'G', 'H', 'K']);
+  const pris = new Set();
+  const liste = [];
+  for (const p of [cible, ...pieges]) {
+    const cle = p.x + ',' + p.y;
+    if (pris.has(cle) || !dansGrille(p, largeur, hauteur)) continue;
+    pris.add(cle);
+    liste.push({ ...p, nom: lettres[liste.length] });
+  }
+  return liste;
 }
 
 // Rectangle avec ses deux dimensions écrites.

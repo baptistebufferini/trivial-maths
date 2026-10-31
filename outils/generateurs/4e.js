@@ -10,8 +10,6 @@
 
 GENERATEURS['4e'] = [];
 const G4 = GENERATEURS['4e'];
-const PRENOMS = ['Léa', 'Hugo', 'Inès', 'Noah', 'Jade', 'Lucas', 'Chloé', 'Adam', 'Emma', 'Nathan', 'Lina', 'Tom', 'Zoé', 'Yanis', 'Sarah', 'Malo'];
-const LETTRES_TRIANGLES = ['ABC', 'DEF', 'EFG', 'IJK', 'KLM', 'MNP', 'RST', 'UVW', 'PQR', 'XYZ'];
 
 // =============================================================
 // NOMBRES — Opérations sur les relatifs (4e-relatifs)
@@ -570,7 +568,6 @@ G4.push({ code: 'STA4', theme: 'donnees', chapitre: '4e-statistiques', nombre: 5
     correction: `Fréquence = effectif ÷ effectif total = ${effectif} ÷ ${total} = ${fr(effectif / total)}, soit ${t} %.` };
 } });
 
-const CATEGORIES = [['Foot', 'Basket', 'Tennis', 'Judo', 'Danse'], ['Pomme', 'Banane', 'Kiwi', 'Poire', 'Fraise'], ['Bus', 'Vélo', 'À pied', 'Voiture'], ['Rouge', 'Bleu', 'Vert', 'Jaune', 'Noir']];
 G4.push({ code: 'STA5', theme: 'donnees', chapitre: '4e-statistiques', nombre: 7, creer() {
   const cats = choix(CATEGORIES), valeurs = cats.map(() => ent(1, 12));
   const i = ent(0, cats.length - 1);
@@ -818,7 +815,6 @@ G4.push({ code: 'COO1', theme: 'geometrie', chapitre: '4e-relatifs', nombre: 7, 
 // GÉOMÉTRIE — Pythagore et sa réciproque
 // =============================================================
 
-const TRIPLETS = [[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 15, 17], [9, 12, 15], [12, 16, 20], [7, 24, 25], [1.5, 2, 2.5], [0.6, 0.8, 1], [15, 20, 25], [2.4, 3.2, 4], [10, 24, 26]];
 G4.push({ code: 'PYT1', theme: 'geometrie', chapitre: '4e-pythagore', nombre: 8, creer() {
   const [a, b, c] = choix(TRIPLETS), [R, P, Q] = choix(LETTRES_TRIANGLES).split('');
   const inverse = hasard() < 0.5;
@@ -908,25 +904,6 @@ G4.push({ code: 'DEM3', theme: 'geometrie', chapitre: '4e-demonstration', nombre
 // =============================================================
 // GÉOMÉTRIE — Translation (4e-translation) et symétries
 // =============================================================
-
-// Un point est utilisable s'il n'est pas sur le bord du quadrillage
-// (sinon sa croix et sa lettre seraient coupées).
-function dansGrille(p, largeur, hauteur) {
-  return p.x >= 1 && p.y >= 1 && p.x <= largeur - 1 && p.y <= hauteur - 1;
-}
-
-function pointsQuadrillage(cible, pieges, largeur, hauteur) {
-  const lettres = melangeH(['B', 'C', 'D', 'E', 'F', 'G', 'H', 'K']);
-  const pris = new Set();
-  const liste = [];
-  for (const p of [cible, ...pieges]) {
-    const cle = p.x + ',' + p.y;
-    if (pris.has(cle) || !dansGrille(p, largeur, hauteur)) continue;
-    pris.add(cle);
-    liste.push({ ...p, nom: lettres[liste.length] });
-  }
-  return liste;
-}
 
 G4.push({ code: 'TRA1', theme: 'geometrie', chapitre: '4e-translation', nombre: 8, creer() {
   const L = 11, H = 7;

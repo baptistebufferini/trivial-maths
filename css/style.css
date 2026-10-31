@@ -243,7 +243,8 @@ button:disabled { cursor: default; }
   font-weight: 600;
 }
 .enonce { font-size: 1.5rem; font-weight: 600; margin: .4rem 0 1rem; }
-.figure { display: block; max-width: 100%; max-height: 40vh; margin: 0 auto 1rem; }
+/* Les figures sont des dessins vectoriels (SVG) : on peut les agrandir sans flou. */
+.figure { display: block; width: 100%; max-width: 26rem; max-height: 45vh; object-fit: contain; margin: 0 auto 1rem; }
 
 /* Réponses QCM */
 .choix-qcm { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
