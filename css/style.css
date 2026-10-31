@@ -93,6 +93,16 @@ button:disabled { cursor: default; }
   min-width: 0;
 }
 
+.aide {
+  margin: .9rem 0 0;
+  padding: .6rem .8rem;
+  background: #f4f6fa;
+  border-radius: 10px;
+  color: var(--texte-doux);
+  font-size: .9rem;
+}
+.aide strong { color: var(--texte); }
+
 .bouton-principal {
   display: block;
   width: 100%;

@@ -102,9 +102,12 @@ function afficherAccueil() {
     const chapitre = document.createElement('select');
     chapitre.className = 'choix-chapitre';
     chapitre.setAttribute('aria-label', `Chapitre en cours ${i + 1}`);
-    const chapitres = Banque.chapitresDu(r.niveau);
+    // Les chapitres dans l'ordre de l'année, puis « Toute l'année » (tout est ouvert).
+    // Par défaut : le premier chapitre.
+    const chapitres = Banque.chapitresAuChoix(r.niveau);
     chapitres.forEach(c => chapitre.add(new Option(c.titre, c.chapitre)));
-    if (!chapitres.some(c => c.chapitre === r.chapitre)) r.chapitre = chapitres.length ? chapitres[0].chapitre : '';
+    if (chapitres.length) chapitre.add(new Option('Toute l\'année (tous les chapitres)', TOUTE_ANNEE));
+    if (r.chapitre !== TOUTE_ANNEE && !chapitres.some(c => c.chapitre === r.chapitre)) r.chapitre = chapitres.length ? chapitres[0].chapitre : '';
     chapitre.value = r.chapitre;
     chapitre.onchange = () => { r.chapitre = chapitre.value; };
     chapitre.title = 'Chapitre en cours en classe';
@@ -113,6 +116,8 @@ function afficherAccueil() {
     ligne.append(pastille, nom, couleur, niveau, chapitre);
     liste.appendChild(ligne);
   }
+  // L'explication du chapitre ne sert que s'il y a au moins un élève.
+  $('aide-chapitre').classList.toggle('cache', brouillon.slice(0, nombreJoueurs).every(r => r.niveau === 'parents'));
 
   // Adversaire virtuel : proposé seulement à un joueur seul
   $('carte-adversaire').classList.toggle('cache', nombreJoueurs !== 1);

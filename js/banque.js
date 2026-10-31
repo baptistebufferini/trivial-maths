@@ -70,6 +70,12 @@ const Banque = {
     return this.progressions[niveau] || [];
   },
 
+  // Les chapitres proposés dans la liste « chapitre en cours » : tous,
+  // sauf ceux travaillés toute l'année (toujours ouverts).
+  chapitresAuChoix(niveau) {
+    return this.chapitresDu(niveau).filter(c => !estToujoursOuvert(c));
+  },
+
   // Niveau d'où vient une question, affiché en petit au-dessus de
   // l'énoncé : « 5e », « 3e »… ou « Parents ».
   origine(q) {
@@ -91,12 +97,15 @@ const Banque = {
     if (q.programme !== 'commun' && q.programme !== programme) return false;
     // Années précédentes : toujours accessibles.
     if (rangQuestion < rangJoueur) return true;
-    if (toutLeNiveau) return true;
-    // Année en cours : les chapitres jusqu'au chapitre en cours (inclus).
-    const chapitres = this.chapitresDu(joueur.niveau).map(c => c.chapitre);
-    const rangQ = chapitres.indexOf(q.chapitre);
-    const rangEnCours = chapitres.indexOf(joueur.chapitre);
-    return rangQ !== -1 && rangQ <= rangEnCours;
+    if (toutLeNiveau || joueur.chapitre === TOUTE_ANNEE) return true;
+    // Année en cours : les chapitres travaillés toute l'année, plus ceux
+    // jusqu'au chapitre en cours (inclus).
+    const fiche = this.chapitresDu(joueur.niveau).find(c => c.chapitre === q.chapitre);
+    if (!fiche) return false;
+    if (estToujoursOuvert(fiche)) return true;
+    const ordre = this.chapitresAuChoix(joueur.niveau).map(c => c.chapitre);
+    const rangEnCours = ordre.indexOf(joueur.chapitre);
+    return rangEnCours !== -1 && ordre.indexOf(q.chapitre) <= rangEnCours;
   },
 
   // Tire au sort une question du thème « themeId » pour ce joueur.
@@ -122,6 +131,15 @@ const Banque = {
     return question;
   },
 };
+
+// Choix « Toute l'année » dans la liste des chapitres : tout le niveau est ouvert.
+const TOUTE_ANNEE = '*';
+
+// Un chapitre dont le titre contient « toute l'année » (ex. « Scratch et
+// tableur (toute l'année) ») est toujours ouvert, quel que soit le chapitre en cours.
+function estToujoursOuvert(chapitre) {
+  return /toute l.ann[ée]e/i.test(chapitre.titre);
+}
 
 // Transforme une ligne brute du fichier en question prête à l'emploi.
 // (Majuscules et espaces en trop sont tolérés : « QCM », « 5E »…)
