@@ -48,6 +48,7 @@ valeurs au hasard et calculent la réponse, la méthode et la figure éventuelle
 
 - `outils/generateurs/outils.js` : outils communs (écriture des nombres, figures)
 - `outils/generateurs/6e.js`, `5e.js`, `4e.js`, `3e.js` : les générateurs de chaque niveau
+- `outils/generateurs/parents.js` : les énigmes des parents, écrites à la main (identifiants `Gp-ENI-…`)
 - `outils/importer.ps1 -Niveau 3e` : remplace les lignes `G3-…` de banque.xlsx par une nouvelle
   génération (Excel doit être fermé) et enregistre les figures dans `images/gen/3e/`
 
