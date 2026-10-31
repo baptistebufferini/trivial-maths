@@ -199,6 +199,7 @@ function afficherRegles() {
     '⭐ <strong>Case du centre :</strong> tu choisis la couleur de ta question.',
     '📖 Après chaque réponse, lis la correction : elle explique la méthode.',
   ];
+  if (etat.joueurs.some(j => j.niveau === 'parents')) regles.push(`🧩 <strong>Joueurs « Parents » :</strong> pas d'algorithmique sur les cases violettes, mais des <strong>énigmes de logique</strong> à la place. Sur les autres couleurs, les questions viennent de tout le programme, de la 6e à la 3e.`);
   if (etat.joueurs.some(j => j.robot)) regles.push(`🤖 <strong>${ADVERSAIRE_NOM}</strong> joue tout seul : regarde sa réponse et la correction, puis clique sur « Continuer ».`);
   $('liste-regles').innerHTML = regles.map(r => `<li>${r}</li>`).join('');
   ouvrir('fenetre-regles');
