@@ -312,6 +312,7 @@ function poserQuestion(themeId, caseCamembert) {
   entete.style.background = theme.couleur;
   entete.textContent = `${theme.icone}  ${theme.nom}` + (estCamembert ? '  —  🧀 question camembert !' : '');
   $('q-joueur').textContent = `${j.nom} · ${etiquette(j)}`;
+  $('q-origine').textContent = Banque.origine(q);
   $('q-enonce').textContent = q.enonce;
 
   const image = $('q-image');

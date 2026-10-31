@@ -70,6 +70,15 @@ const Banque = {
     return this.progressions[niveau] || [];
   },
 
+  // D'où vient une question, pour l'afficher au-dessus de l'énoncé :
+  // « Question de 5e · 3. Nombres relatifs », « Énigme »…
+  origine(q) {
+    if (q.theme === THEME_ENIGME.id) return 'Énigme';
+    if (q.niveau === 'parents') return 'Question parents';
+    const chapitre = this.chapitresDu(q.niveau).find(c => c.chapitre === q.chapitre);
+    return `Question de ${q.niveau}` + (chapitre ? ` · ${chapitre.titre}` : '');
+  },
+
   // Cette question peut-elle être posée à ce joueur ?
   // « toutLeNiveau » sert de plan B si aucune question ne convient :
   // on ignore alors le chapitre en cours.
