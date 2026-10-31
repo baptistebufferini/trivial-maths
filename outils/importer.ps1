@@ -55,7 +55,9 @@ try {
   $derniere = $f.Cells($f.Rows.Count, 1).End(-4162).Row
   $supprimees = 0
   for ($r = $derniere; $r -ge 2; $r--) {
-    if ([string]$f.Cells($r, 1).Value2 -like "$prefixe*") { [void]$f.Rows($r).Delete(); $supprimees++ }
+    # Seulement les identifiants générés : « G6- » suivi de lettres (ex. G6-ENT1-03).
+    # Les questions écrites à la main, comme G6-01, ne sont jamais touchées.
+    if ([string]$f.Cells($r, 1).Value2 -cmatch "^$prefixe[A-Z]") { [void]$f.Rows($r).Delete(); $supprimees++ }
   }
   # Ajout des nouvelles à la suite
   $debut = $f.Cells($f.Rows.Count, 1).End(-4162).Row + 1
