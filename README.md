@@ -42,12 +42,12 @@ Si une ligne est incomplète, le jeu l'ignore et la signale en orange sur l'accu
 
 ## Questions générées automatiquement
 
-Les questions dont l'identifiant commence par `G4-` (4e) ou `G3-` (3e) sont fabriquées par des
+Les questions dont l'identifiant commence par `G5-` (5e), `G4-` (4e) ou `G3-` (3e) sont fabriquées par des
 « générateurs » : de petits programmes, un par type de question, qui tirent des
 valeurs au hasard et calculent la réponse, la méthode et la figure éventuelle.
 
 - `outils/generateurs/outils.js` : outils communs (écriture des nombres, figures)
-- `outils/generateurs/4e.js`, `3e.js` : les générateurs de chaque niveau
+- `outils/generateurs/5e.js`, `4e.js`, `3e.js` : les générateurs de chaque niveau
 - `outils/importer.ps1 -Niveau 3e` : remplace les lignes `G3-…` de banque.xlsx par une nouvelle
   génération (Excel doit être fermé) et enregistre les figures dans `images/gen/3e/`
 
