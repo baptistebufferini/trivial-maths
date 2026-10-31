@@ -32,7 +32,11 @@ powershell -ExecutionPolicy Bypass -File .claude/serveur.ps1
 
 1. Ouvrir `data/banque.xlsx` avec Excel.
 2. Onglet **Questions** : ajouter une ligne (l'onglet **Aide** explique chaque colonne).
-3. Enregistrer (au format .xlsx, même nom), puis recharger la page du jeu.
+3. Enregistrer (au format .xlsx, même nom) et fermer Excel.
+4. Double-cliquer sur **`publier.bat`** : les modifications partent sur GitHub,
+   et le jeu en ligne est à jour 1 à 2 minutes plus tard.
+
+Jeu en ligne : https://baptistebufferini.github.io/trivial-maths/
 
 Si une ligne est incomplète, le jeu l'ignore et la signale en orange sur l'accueil.
 
