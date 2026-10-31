@@ -61,7 +61,10 @@
       </button>
       <p id="message" aria-live="polite"></p>
       <ul id="scores"></ul>
-      <button id="bouton-quitter" type="button" class="bouton-discret">Quitter la partie</button>
+      <div class="liens-bas">
+        <button id="bouton-regles" type="button" class="bouton-discret">Règles</button>
+        <button id="bouton-quitter" type="button" class="bouton-discret">Quitter la partie</button>
+      </div>
     </aside>
   </section>
 
@@ -87,6 +90,17 @@
       <div class="corps-fenetre">
         <h2>Case centrale : choisis ton thème</h2>
         <div id="liste-themes"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== FENÊTRE : RÈGLES (début de partie) ===================== -->
+  <div id="fenetre-regles" class="fond-fenetre cache">
+    <div class="fenetre" role="dialog" aria-modal="true" aria-labelledby="titre-regles">
+      <div class="corps-fenetre">
+        <h2 id="titre-regles">Règles du jeu</h2>
+        <ul id="liste-regles" class="regles"></ul>
+        <button id="bouton-compris" type="button" class="bouton-principal">Compris, on joue !</button>
       </div>
     </div>
   </div>

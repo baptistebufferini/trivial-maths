@@ -182,6 +182,27 @@ function commencerPartie() {
   Plateau.surClic = (id) => { if (!joueur().robot) clicSurCase(id); };
   Plateau.placerPions(etat.joueurs);
   debutTour(`La partie commence ! But : gagner ${etat.objectif} camemberts.`);
+  afficherRegles();   // les règles restent affichées jusqu'au clic sur « Compris »
+}
+
+// Fenêtre des règles : affichée au début de chaque partie, et sur demande
+// (bouton « Règles »). Le texte s'adapte aux réglages de config.js.
+function afficherRegles() {
+  const regles = [
+    `🎯 <strong>But :</strong> être le premier à gagner <strong>${etat.objectif} camemberts</strong>, de couleurs différentes.`,
+    '🎲 <strong>À ton tour :</strong> lance le dé, puis clique sur une des cases qui clignotent.',
+    '❓ Réponds à la question de la couleur de la case. Sur une <strong>case camembert</strong> (grande case avec un rond blanc), une bonne réponse fait gagner le camembert de cette couleur.',
+    REJOUER_APRES_BONNE_REPONSE
+      ? `✅ <strong>Bonne réponse :</strong> tu rejoues. Mais au maximum <strong>${MAX_DEPLACEMENTS_AFFILEE} déplacements par tour</strong>, même si tu réussis tout : ensuite, c'est au joueur suivant.`
+      : '✅ Après chaque question, c\'est au joueur suivant.',
+    `↻ <strong>Case « Rejouer » :</strong> tu relances le dé (cela compte aussi dans les ${MAX_DEPLACEMENTS_AFFILEE} déplacements).`,
+    '⭐ <strong>Case du centre :</strong> tu choisis la couleur de ta question.',
+    '📖 Après chaque réponse, lis la correction : elle explique la méthode.',
+  ];
+  if (etat.joueurs.some(j => j.robot)) regles.push(`🤖 <strong>${ADVERSAIRE_NOM}</strong> joue tout seul : regarde sa réponse et la correction, puis clique sur « Continuer ».`);
+  $('liste-regles').innerHTML = regles.map(r => `<li>${r}</li>`).join('');
+  ouvrir('fenetre-regles');
+  setTimeout(() => $('bouton-compris').focus(), 50);
 }
 
 // =============================================================
@@ -550,6 +571,7 @@ function retourAccueil() {
   fermer('fenetre-fin');
   fermer('fenetre-question');
   fermer('fenetre-theme');
+  fermer('fenetre-regles');
   $('ecran-jeu').classList.add('cache');
   $('ecran-accueil').classList.remove('cache');
   afficherAccueil();
@@ -563,6 +585,8 @@ async function demarrer() {
   $('bouton-commencer').onclick = commencerPartie;
   $('bouton-de').onclick = () => { if (!joueur().robot) lancerDe(); };
   $('bouton-rejouer').onclick = retourAccueil;
+  $('bouton-regles').onclick = afficherRegles;
+  $('bouton-compris').onclick = () => fermer('fenetre-regles');
   $('bouton-quitter').onclick = () => {
     if (confirm('Quitter la partie en cours ?')) retourAccueil();
   };

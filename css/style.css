@@ -188,10 +188,15 @@ button:disabled { cursor: default; }
 .mini-camembert { width: 2.6rem; height: 2.6rem; flex: none; }
 
 .bouton-discret {
-  margin-top: auto;
   background: none; border: none;
   color: var(--texte-doux); text-decoration: underline;
 }
+.liens-bas { margin-top: auto; display: flex; justify-content: space-between; gap: .5rem; }
+
+/* Fenêtre des règles */
+.regles { list-style: none; padding: 0; margin: 0 0 1.2rem; display: flex; flex-direction: column; gap: .6rem; }
+.regles li { padding-left: 2rem; text-indent: -2rem; }
+.regles strong { color: var(--accent); }
 
 /* ---------------- Le plateau (SVG) ---------------- */
 
