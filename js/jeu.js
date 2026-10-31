@@ -182,14 +182,17 @@ function commencerPartie() {
   Plateau.surClic = (id) => { if (!joueur().robot) clicSurCase(id); };
   Plateau.placerPions(etat.joueurs);
   debutTour(`La partie commence ! But : gagner ${etat.objectif} camemberts.`);
-  afficherRegles();   // les règles restent affichées jusqu'au clic sur « Compris »
 }
 
-// Fenêtre des règles : affichée au début de chaque partie, et sur demande
-// (bouton « Règles »). Le texte s'adapte aux réglages de config.js.
-function afficherRegles() {
+// Fenêtre des règles : affichée à l'ouverture du site, et sur demande
+// (liens « Règles du jeu » de l'accueil et « Règles » pendant la partie).
+// enPartie = true : règles adaptées à la partie en cours (nombre de
+// camemberts, présence d'un parent ou de l'adversaire virtuel).
+// Le texte suit aussi les réglages de config.js.
+function afficherRegles(enPartie) {
+  const objectif = enPartie ? `${etat.objectif} camemberts` : '3, 4 ou 5 camemberts';
   const regles = [
-    `🎯 <strong>But :</strong> être le premier à gagner <strong>${etat.objectif} camemberts</strong>, de couleurs différentes.`,
+    `🎯 <strong>But :</strong> être le premier à gagner <strong>${objectif}</strong>, de couleurs différentes${enPartie ? '' : ' (selon la durée choisie)'}.`,
     '🎲 <strong>À ton tour :</strong> lance le dé, puis clique sur une des cases qui clignotent.',
     '❓ Réponds à la question de la couleur de la case. Sur une <strong>case camembert</strong> (grande case avec un rond blanc), une bonne réponse fait gagner le camembert de cette couleur.',
     REJOUER_APRES_BONNE_REPONSE
@@ -199,8 +202,9 @@ function afficherRegles() {
     '⭐ <strong>Case du centre :</strong> tu choisis la couleur de ta question.',
     '📖 Après chaque réponse, lis la correction : elle explique la méthode.',
   ];
-  if (etat.joueurs.some(j => j.niveau === 'parents')) regles.push(`🧩 <strong>Joueurs « Parents » :</strong> pas d'algorithmique sur les cases violettes, mais des <strong>énigmes de logique</strong> à la place. Sur les autres couleurs, les questions viennent de tout le programme, de la 6e à la 3e.`);
-  if (etat.joueurs.some(j => j.robot)) regles.push(`🤖 <strong>${ADVERSAIRE_NOM}</strong> joue tout seul : regarde sa réponse et la correction, puis clique sur « Continuer ».`);
+  if (!enPartie || etat.joueurs.some(j => j.niveau === 'parents')) regles.push(`🧩 <strong>Joueurs « Parents » :</strong> pas d'algorithmique sur les cases violettes, mais des <strong>énigmes de logique</strong> à la place. Sur les autres couleurs, les questions viennent de tout le programme, de la 6e à la 3e.`);
+  if (!enPartie) regles.push(`🤖 <strong>Tu joues seul ?</strong> Tu peux affronter ${ADVERSAIRE_NOM}, l'adversaire virtuel : il joue tout seul, regarde sa réponse et la correction, puis clique sur « Continuer ».`);
+  else if (etat.joueurs.some(j => j.robot)) regles.push(`🤖 <strong>${ADVERSAIRE_NOM}</strong> joue tout seul : regarde sa réponse et la correction, puis clique sur « Continuer ».`);
   $('liste-regles').innerHTML = regles.map(r => `<li>${r}</li>`).join('');
   ouvrir('fenetre-regles');
   setTimeout(() => $('bouton-compris').focus(), 50);
@@ -586,8 +590,10 @@ async function demarrer() {
   $('bouton-commencer').onclick = commencerPartie;
   $('bouton-de').onclick = () => { if (!joueur().robot) lancerDe(); };
   $('bouton-rejouer').onclick = retourAccueil;
-  $('bouton-regles').onclick = afficherRegles;
+  $('bouton-regles').onclick = () => afficherRegles(true);
+  $('lien-regles').onclick = () => afficherRegles(false);
   $('bouton-compris').onclick = () => fermer('fenetre-regles');
+  afficherRegles(false);   // les règles s'affichent dès l'ouverture du site
   $('bouton-quitter').onclick = () => {
     if (confirm('Quitter la partie en cours ?')) retourAccueil();
   };

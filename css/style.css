@@ -192,6 +192,7 @@ button:disabled { cursor: default; }
   color: var(--texte-doux); text-decoration: underline;
 }
 .liens-bas { margin-top: auto; display: flex; justify-content: space-between; gap: .5rem; }
+.lien-centre { text-align: center; margin: .6rem 0 0; }
 
 /* Fenêtre des règles */
 .regles { list-style: none; padding: 0; margin: 0 0 1.2rem; display: flex; flex-direction: column; gap: .6rem; }
