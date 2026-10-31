@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 260" width="320" height="260" font-family="Arial, sans-serif" font-size="20">
+  <rect width="320" height="260" fill="#ffffff"/>
+  <!-- Triangle rectangle en A : AB = 3 (vertical), AC = 4 (horizontal) -->
+  <polygon points="60,210 60,60 260,210" fill="#fde7f1" stroke="#222" stroke-width="3"/>
+  <!-- Angle droit en A -->
+  <polyline points="60,188 82,188 82,210" fill="none" stroke="#222" stroke-width="2"/>
+  <text x="38" y="228">A</text>
+  <text x="40" y="56">B</text>
+  <text x="266" y="228">C</text>
+  <text x="30" y="142">3</text>
+  <text x="152" y="238">4</text>
+  <text x="170" y="122" fill="#c2185b" font-weight="bold">?</text>
+</svg>

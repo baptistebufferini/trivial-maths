@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trivial Maths</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ===================== ÉCRAN 1 : ACCUEIL ===================== -->
+  <section id="ecran-accueil" class="ecran">
+    <header class="titre">
+      <h1>Trivial Maths <span class="badge">bêta</span></h1>
+      <p>Le Trivial Pursuit des automatismes de maths</p>
+    </header>
+
+    <div class="carte">
+      <h2>Combien de joueurs ou d'équipes ?</h2>
+      <div id="choix-nombre" class="groupe-boutons"></div>
+      <div id="liste-joueurs"></div>
+    </div>
+
+    <div class="carte">
+      <h2>Durée de la partie</h2>
+      <div id="choix-duree" class="groupe-boutons">
+        <button type="button" data-objectif="3">Courte<small>3 camemberts</small></button>
+        <button type="button" data-objectif="4">Moyenne<small>4 camemberts</small></button>
+        <button type="button" data-objectif="5">Complète<small>5 camemberts</small></button>
+      </div>
+    </div>
+
+    <button id="bouton-commencer" type="button" class="bouton-principal">Commencer la partie</button>
+    <p id="info-chargement" class="info"></p>
+  </section>
+
+  <!-- ===================== ÉCRAN 2 : PARTIE ===================== -->
+  <section id="ecran-jeu" class="ecran cache">
+    <div id="zone-plateau">
+      <svg id="plateau" viewBox="0 0 1000 1000" role="img" aria-label="Plateau de jeu"></svg>
+    </div>
+    <aside id="panneau">
+      <div id="tour-de"></div>
+      <button id="bouton-de" type="button" class="de">
+        <span id="face-de">🎲</span>
+        <small id="legende-de">Lancer le dé</small>
+      </button>
+      <p id="message" aria-live="polite"></p>
+      <ul id="scores"></ul>
+      <button id="bouton-quitter" type="button" class="bouton-discret">Quitter la partie</button>
+    </aside>
+  </section>
+
+  <!-- ===================== FENÊTRE : QUESTION ===================== -->
+  <div id="fenetre-question" class="fond-fenetre cache">
+    <div class="fenetre" role="dialog" aria-modal="true" aria-labelledby="q-enonce">
+      <div id="q-entete" class="entete-question"></div>
+      <div class="corps-fenetre">
+        <p id="q-joueur" class="q-joueur"></p>
+        <p id="q-enonce" class="enonce"></p>
+        <img id="q-image" class="figure cache" alt="Figure de la question">
+        <div id="q-reponses"></div>
+        <div id="q-resultat" class="cache"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== FENÊTRE : CHOIX DU THÈME (centre) ===================== -->
+  <div id="fenetre-theme" class="fond-fenetre cache">
+    <div class="fenetre" role="dialog" aria-modal="true">
+      <div class="corps-fenetre">
+        <h2>Case centrale : choisis ton thème</h2>
+        <div id="liste-themes"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== FENÊTRE : FIN DE PARTIE ===================== -->
+  <div id="fenetre-fin" class="fond-fenetre cache">
+    <div class="fenetre fin" role="dialog" aria-modal="true">
+      <div class="corps-fenetre">
+        <p class="trophee">🏆</p>
+        <h2 id="texte-fin"></h2>
+        <div id="camembert-fin"></div>
+        <button id="bouton-rejouer" type="button" class="bouton-principal">Nouvelle partie</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Les scripts, dans l'ordre : réglages, données, outils, puis le jeu. -->
+  <script src="js/config.js"></script>
+  <script src="data/questions-demo.js"></script>
+  <script src="data/deblocages-demo.js"></script>
+  <script src="js/csv.js"></script>
+  <script src="js/verification.js"></script>
+  <script src="js/banque.js"></script>
+  <script src="js/plateau.js"></script>
+  <script src="js/jeu.js"></script>
+</body>
+</html>

@@ -1,0 +1,290 @@
+/* =============================================================
+   APPARENCE DU JEU
+   Les couleurs générales sont réunies ici, en haut, pour pouvoir
+   les changer facilement. (Les couleurs des thèmes sont dans
+   js/config.js.)
+   ============================================================= */
+
+:root {
+  --fond: #f5f2ea;
+  --carte: #ffffff;
+  --texte: #1d1d1f;
+  --texte-doux: #5b5b63;
+  --accent: #1f6fd1;
+  --juste: #1e8e3e;
+  --faux: #c62828;
+  --bord: #dcd8cc;
+  --rayon: 14px;
+}
+
+* { box-sizing: border-box; }
+
+/* La taille du texte grandit avec l'écran : lisible au tableau numérique. */
+html { font-size: clamp(16px, 0.9vw + 9px, 26px); }
+
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--texte);
+  font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  line-height: 1.4;
+}
+
+button { font: inherit; cursor: pointer; }
+button:disabled { cursor: default; }
+.cache { display: none !important; }
+
+/* ---------------- Accueil ---------------- */
+
+#ecran-accueil {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.titre { text-align: center; margin-bottom: 1.5rem; }
+.titre h1 { margin: 0; font-size: 2.4rem; }
+.titre p { margin: .3rem 0 0; color: var(--texte-doux); }
+.badge {
+  font-size: .9rem; vertical-align: middle;
+  background: var(--accent); color: #fff;
+  padding: .1rem .5rem; border-radius: 999px;
+}
+
+.carte {
+  background: var(--carte);
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon);
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+}
+.carte h2 { margin: 0 0 .8rem; font-size: 1.15rem; }
+
+.groupe-boutons { display: flex; flex-wrap: wrap; gap: .5rem; }
+.groupe-boutons button {
+  flex: 1 1 0;
+  min-width: 3rem;
+  padding: .6rem .8rem;
+  border: 2px solid var(--bord);
+  border-radius: 10px;
+  background: #fff;
+  font-weight: 600;
+}
+.groupe-boutons button small { display: block; font-weight: 400; color: var(--texte-doux); }
+.groupe-boutons button.choisi { border-color: var(--accent); background: #e8f0fb; }
+
+.ligne-joueur {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr auto auto;
+  gap: .5rem;
+  align-items: center;
+  margin-top: .7rem;
+}
+.ligne-joueur .pastille {
+  width: 2rem; height: 2rem; border-radius: 50%;
+  border: 2px solid #222;
+}
+.ligne-joueur input, .ligne-joueur select {
+  font: inherit;
+  padding: .45rem .5rem;
+  border: 2px solid var(--bord);
+  border-radius: 8px;
+  background: #fff;
+  min-width: 0;
+}
+
+.bouton-principal {
+  display: block;
+  width: 100%;
+  padding: .9rem;
+  border: none;
+  border-radius: var(--rayon);
+  background: var(--accent);
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.bouton-principal:hover { filter: brightness(1.1); }
+
+.info { color: var(--texte-doux); font-size: .9rem; text-align: center; white-space: pre-line; }
+
+/* ---------------- Écran de jeu ---------------- */
+
+#ecran-jeu {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+  height: 100vh;
+  height: 100dvh;
+}
+
+#zone-plateau {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: .5rem;
+  min-height: 0;
+}
+#plateau { width: 100%; height: 100%; max-height: 100%; }
+
+#panneau {
+  background: var(--carte);
+  border-left: 1px solid var(--bord);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+  overflow-y: auto;
+}
+
+#tour-de { font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: .5rem; }
+#tour-de .pastille { width: 1.4rem; height: 1.4rem; border-radius: 50%; border: 2px solid #222; flex: none; }
+#tour-de small { font-weight: 400; color: var(--texte-doux); }
+
+.de {
+  display: flex; flex-direction: column; align-items: center;
+  padding: .6rem;
+  border: 3px solid var(--accent);
+  border-radius: var(--rayon);
+  background: #fff;
+}
+.de #face-de { font-size: 3.5rem; line-height: 1; }
+.de:disabled { border-color: var(--bord); opacity: .8; }
+.de:not(:disabled):hover { background: #e8f0fb; }
+
+#message { margin: 0; min-height: 2.8em; white-space: pre-line; }
+
+#scores { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; }
+#scores li {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .35rem .5rem;
+  border-radius: 10px;
+  border: 2px solid transparent;
+}
+#scores li.actif { border-color: var(--accent); background: #e8f0fb; }
+#scores .nom { flex: 1; }
+#scores .nom small { display: block; color: var(--texte-doux); }
+.mini-camembert { width: 2.6rem; height: 2.6rem; flex: none; }
+
+.bouton-discret {
+  margin-top: auto;
+  background: none; border: none;
+  color: var(--texte-doux); text-decoration: underline;
+}
+
+/* ---------------- Le plateau (SVG) ---------------- */
+
+.fond-plateau { fill: #fbf8f0; stroke: #d9d3c3; stroke-width: 2; }
+.case .forme { stroke: #fff; stroke-width: 4; }
+.icone-case { fill: #fff; font-size: 26px; font-weight: 700; pointer-events: none; }
+.icone-camembert { font-size: 28px; font-weight: 800; pointer-events: none; }
+.icone-rejouer { fill: #555; font-size: 40px; font-weight: 700; pointer-events: none; }
+.texte-centre { fill: #333; font-size: 24px; font-weight: 700; pointer-events: none; }
+
+/* Pendant le choix d'une case : les autres cases pâlissent,
+   les cases accessibles clignotent. */
+.mode-choix .case:not(.accessible) { opacity: .35; }
+.case.accessible { cursor: pointer; animation: clignote .7s ease-in-out infinite alternate; }
+.case.accessible .forme { stroke: #111; stroke-width: 7; }
+@keyframes clignote { from { opacity: 1; } to { opacity: .6; } }
+
+.pion { transition: transform .45s ease; pointer-events: none; }
+.pion circle { stroke: #222; stroke-width: 4; }
+.pion .initiale { font-size: 26px; font-weight: 800; }
+
+/* ---------------- Fenêtres (question, thème, fin) ---------------- */
+
+.fond-fenetre {
+  position: fixed; inset: 0;
+  background: rgba(20, 20, 30, .55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+  z-index: 10;
+}
+.fenetre {
+  background: var(--carte);
+  border-radius: var(--rayon);
+  width: min(46rem, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, .3);
+}
+.corps-fenetre { padding: 1rem 1.3rem 1.3rem; }
+.corps-fenetre h2 { margin-top: 0; }
+
+.entete-question {
+  color: #fff;
+  font-weight: 700;
+  padding: .7rem 1.3rem;
+  border-radius: var(--rayon) var(--rayon) 0 0;
+  font-size: 1.05rem;
+}
+.q-joueur { margin: 0; color: var(--texte-doux); }
+.enonce { font-size: 1.5rem; font-weight: 600; margin: .4rem 0 1rem; }
+.figure { display: block; max-width: 100%; max-height: 40vh; margin: 0 auto 1rem; }
+
+/* Réponses QCM */
+.choix-qcm { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.choix-qcm button {
+  padding: .8rem;
+  border: 2px solid var(--bord);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 1.15rem;
+}
+.choix-qcm button:not(:disabled):hover { border-color: var(--accent); background: #e8f0fb; }
+.choix-qcm button:disabled { color: var(--texte); }
+.choix-qcm button.bonne { border-color: var(--juste); background: #e3f4e8; }
+.choix-qcm button.mauvaise { border-color: var(--faux); background: #fbe5e5; }
+
+/* Réponse tapée */
+.saisie { display: flex; gap: .5rem; flex-wrap: wrap; }
+.saisie input {
+  flex: 1 1 10rem;
+  font: inherit; font-size: 1.3rem;
+  padding: .6rem .8rem;
+  border: 2px solid var(--bord);
+  border-radius: 10px;
+}
+.saisie button {
+  padding: .6rem 1.1rem;
+  border: none; border-radius: 10px;
+  background: var(--accent); color: #fff; font-weight: 700;
+}
+.saisie .je-sais-pas { background: #eee; color: var(--texte); font-weight: 400; }
+
+/* Résultat et correction */
+#q-resultat { margin-top: 1rem; padding: .8rem 1rem; border-radius: 10px; }
+#q-resultat.juste { background: #e3f4e8; border: 2px solid var(--juste); }
+#q-resultat.faux { background: #fbe5e5; border: 2px solid var(--faux); }
+#q-resultat .verdict { font-size: 1.3rem; font-weight: 800; margin: 0 0 .3rem; }
+#q-resultat p { margin: .3rem 0; white-space: pre-line; }
+#q-resultat button { margin-top: .6rem; }
+
+/* Choix du thème au centre */
+#liste-themes { display: flex; flex-direction: column; gap: .5rem; }
+#liste-themes button {
+  padding: .8rem; border: none; border-radius: 10px;
+  color: #fff; font-weight: 700; text-align: left;
+}
+
+.fin { text-align: center; }
+.trophee { font-size: 4rem; margin: 0; }
+#camembert-fin .mini-camembert { width: 7rem; height: 7rem; margin: .5rem auto 1rem; display: block; }
+
+/* ---------------- Petits écrans (téléphone) ---------------- */
+
+@media (max-width: 800px) {
+  #ecran-jeu {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    height: auto;
+  }
+  #zone-plateau { padding: .25rem; }
+  #plateau { height: auto; aspect-ratio: 1; }
+  #panneau { border-left: none; border-top: 1px solid var(--bord); }
+  .de #face-de { font-size: 2.6rem; }
+  .ligne-joueur { grid-template-columns: 2rem 1fr; }
+  .ligne-joueur select { grid-column: span 1; }
+  .enonce { font-size: 1.25rem; }
+  .choix-qcm { grid-template-columns: 1fr; }
+}
