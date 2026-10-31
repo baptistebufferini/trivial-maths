@@ -28,6 +28,9 @@ const brouillon = COULEURS_PIONS.map((pion, i) => ({
   niveau: '5e',
 }));
 let nombreJoueurs = 2;
+// Niveau de l'adversaire virtuel (numéro dans NIVEAUX_ADVERSAIRE),
+// ou null = pas d'adversaire. Par défaut : « Moyen ».
+let adversaire = 1;
 
 function afficherAccueil() {
   // Boutons 1 à 6
@@ -80,6 +83,21 @@ function afficherAccueil() {
     liste.appendChild(ligne);
   }
 
+  // Adversaire virtuel : proposé seulement à un joueur seul
+  $('carte-adversaire').classList.toggle('cache', nombreJoueurs !== 1);
+  const zoneAdversaire = $('choix-adversaire');
+  zoneAdversaire.innerHTML = '';
+  [null, ...NIVEAUX_ADVERSAIRE.keys()].forEach(k => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.innerHTML = k === null
+      ? 'Aucun<small>jouer seul</small>'
+      : `${NIVEAUX_ADVERSAIRE[k].nom}<small>${NIVEAUX_ADVERSAIRE[k].reussite} % de réussite</small>`;
+    b.classList.toggle('choisi', k === adversaire);
+    b.onclick = () => { adversaire = k; afficherAccueil(); };
+    zoneAdversaire.appendChild(b);
+  });
+
   // Durée
   document.querySelectorAll('#choix-duree button').forEach(b => {
     b.classList.toggle('choisi', Number(b.dataset.objectif) === etat.objectif);
@@ -101,6 +119,18 @@ function commencerPartie() {
     position: 'centre',
     camemberts: new Set(),
   }));
+  // Un joueur seul peut affronter l'adversaire virtuel. Il prend
+  // une couleur de pion libre et reçoit des questions du même niveau.
+  if (nombreJoueurs === 1 && adversaire !== null) {
+    etat.joueurs.push({
+      nom: ADVERSAIRE_NOM,
+      pion: COULEURS_PIONS.find((p, k) => k !== choisis[0].couleur),
+      niveau: choisis[0].niveau,
+      position: 'centre',
+      camemberts: new Set(),
+      robot: NIVEAUX_ADVERSAIRE[adversaire],   // { nom, reussite }
+    });
+  }
   etat.courant = 0;
   Banque.dejaPosees.clear();
 
@@ -108,7 +138,8 @@ function commencerPartie() {
   $('ecran-jeu').classList.remove('cache');
   Plateau.construire();
   Plateau.dessiner($('plateau'));
-  Plateau.surClic = clicSurCase;
+  // Pendant le tour de l'adversaire, les clics du joueur sont ignorés.
+  Plateau.surClic = (id) => { if (!joueur().robot) clicSurCase(id); };
   Plateau.placerPions(etat.joueurs);
   debutTour(`La partie commence ! But : gagner ${etat.objectif} camemberts.`);
 }
@@ -120,9 +151,17 @@ function commencerPartie() {
 function debutTour(texte) {
   etat.phase = 'lancer';
   afficherPanneau();
-  message((texte ? texte + '\n' : '') + `${joueur().nom}, lance le dé !`);
-  $('bouton-de').disabled = false;
+  const j = joueur();
   $('legende-de').textContent = 'Lancer le dé';
+  if (j.robot) {
+    // L'adversaire virtuel lance le dé tout seul, après une petite pause.
+    message((texte ? texte + '\n' : '') + `${j.nom} lance le dé…`);
+    $('bouton-de').disabled = true;
+    plusTard(lancerDe, 1200);
+  } else {
+    message((texte ? texte + '\n' : '') + `${j.nom}, lance le dé !`);
+    $('bouton-de').disabled = false;
+  }
 }
 
 function lancerDe() {
@@ -135,9 +174,9 @@ function lancerDe() {
     const valeur = 1 + Math.floor(Math.random() * 6);
     afficherDe(valeur);
     tours++;
-    if (tours === 10) {
+    if (tours === 10 || etat.phase !== 'roulement') {
       clearInterval(animation);
-      proposerDestinations(valeur);
+      if (etat.phase === 'roulement') proposerDestinations(valeur);
     }
   }, 70);
 }
@@ -151,7 +190,24 @@ function proposerDestinations(valeur) {
   etat.destinations = Plateau.destinations(joueur().position, valeur);
   etat.phase = 'deplacer';
   Plateau.surligner(etat.destinations);
-  message(`${joueur().nom} a fait ${valeur}. Clique sur une des cases qui clignotent.`);
+  if (joueur().robot) {
+    message(`${joueur().nom} a fait ${valeur} et choisit sa case…`);
+    plusTard(() => clicSurCase(choixDuRobot(etat.destinations)), 1200);
+  } else {
+    message(`${joueur().nom} a fait ${valeur}. Clique sur une des cases qui clignotent.`);
+  }
+}
+
+// L'adversaire virtuel choisit sa case : d'abord un camembert qui lui
+// manque, sinon une case « Rejouer », sinon une case au hasard.
+function choixDuRobot(destinations) {
+  const j = joueur();
+  const cases = destinations.map(id => Plateau.cases[id]);
+  const camembert = cases.find(c => c.type === 'camembert' && !j.camemberts.has(c.theme));
+  if (camembert) return camembert.id;
+  const rejouer = cases.find(c => c.type === 'rejouer');
+  if (rejouer) return rejouer.id;
+  return cases[Math.floor(Math.random() * cases.length)].id;
 }
 
 function clicSurCase(id) {
@@ -161,7 +217,7 @@ function clicSurCase(id) {
   Plateau.placerPions(etat.joueurs);
   etat.phase = 'question';
   // On attend la fin du déplacement du pion avant d'afficher la suite.
-  setTimeout(() => arriverSurCase(Plateau.cases[id]), 500);
+  plusTard(() => arriverSurCase(Plateau.cases[id]), 500);
 }
 
 function arriverSurCase(c) {
@@ -176,6 +232,15 @@ function arriverSurCase(c) {
 
 // Au centre, le joueur choisit le thème de sa question.
 function ouvrirChoixTheme() {
+  const j = joueur();
+  if (j.robot) {
+    // L'adversaire prend au hasard un thème dont il n'a pas le camembert.
+    const manquants = THEMES.filter(t => !j.camemberts.has(t.id));
+    const t = manquants[Math.floor(Math.random() * manquants.length)];
+    message(`${j.nom} choisit « ${themeDuJoueur(j, t.id).nom} ».`);
+    plusTard(() => poserQuestion(t.id, false), 900);
+    return;
+  }
   const liste = $('liste-themes');
   liste.innerHTML = '';
   THEMES.forEach(t => {
@@ -209,7 +274,7 @@ function poserQuestion(themeId, caseCamembert) {
   const entete = $('q-entete');
   entete.style.background = theme.couleur;
   entete.textContent = `${theme.icone}  ${theme.nom}` + (estCamembert ? '  —  🧀 question camembert !' : '');
-  $('q-joueur').textContent = `${j.nom} · ${j.niveau === 'parents' ? 'Parents' : j.niveau}`;
+  $('q-joueur').textContent = `${j.nom} · ${etiquette(j)}`;
   $('q-enonce').textContent = q.enonce;
 
   const image = $('q-image');
@@ -227,10 +292,11 @@ function poserQuestion(themeId, caseCamembert) {
       const b = document.createElement('button');
       b.type = 'button';
       b.textContent = texte;
-      b.onclick = () => corriger(texte === q.reponse, b);
+      if (j.robot) b.disabled = true;   // c'est l'adversaire qui choisit
+      else b.onclick = () => corriger(texte === q.reponse, b);
       zone.appendChild(b);
     });
-  } else {
+  } else if (!j.robot) {
     // Réponse tapée au clavier.
     zone.className = 'saisie';
     const formulaire = document.createElement('form');
@@ -257,7 +323,42 @@ function poserQuestion(themeId, caseCamembert) {
     zone.appendChild(formulaire);
     setTimeout(() => champ.focus(), 50);
   }
+  $('q-bulle').classList.add('cache');
   ouvrir('fenetre-question');
+  if (j.robot) faireRepondreRobot(q);
+}
+
+// L'adversaire virtuel « réfléchit », puis répond dans une bulle.
+// Il trouve la bonne réponse avec la probabilité de son niveau
+// (par exemple 65 % pour « Moyen »).
+function faireRepondreRobot(q) {
+  const juste = Math.random() * 100 < joueur().robot.reussite;
+  const reponse = juste ? q.reponse : mauvaiseReponse(q);
+  const bulle = $('q-bulle');
+  bulle.textContent = 'Hmm…';
+  bulle.classList.remove('cache');
+  plusTard(() => {
+    bulle.textContent = reponse === null ? 'Euh… je ne sais pas !' : `Hmm, je dirais ${reponse}…`;
+    plusTard(() => {
+      // En QCM, on retrouve le bouton choisi pour le colorer.
+      const bouton = [...$('q-reponses').querySelectorAll('button')].find(b => b.textContent === reponse);
+      corriger(juste, bouton);
+    }, 1400);
+  }, 1200 + Math.random() * 1300);
+}
+
+// Invente une mauvaise réponse vraisemblable pour l'adversaire.
+// Renvoie null s'il vaut mieux qu'il dise « je ne sais pas ».
+function mauvaiseReponse(q) {
+  if (q.type === 'qcm') return q.faux[Math.floor(Math.random() * q.faux.length)];
+  const valeur = valeurNumerique(normaliser(q.reponse));
+  if (valeur === null || q.reponse.includes('/')) return null;
+  // Erreurs classiques : ± 1, ± 10, facteur 10 ou facteur 2.
+  const essais = [valeur + 1, valeur - 1, valeur + 10, valeur * 10, valeur / 10, valeur * 2]
+    .map(x => Math.round(x * 1000) / 1000)
+    .filter(x => Math.abs(x - valeur) > 1e-9);
+  const x = essais[Math.floor(Math.random() * essais.length)];
+  return String(x).replace('.', ',');   // écriture française : virgule
 }
 
 // Affiche si c'est juste, la bonne réponse et la méthode.
@@ -278,7 +379,9 @@ function corriger(juste, boutonClique) {
   resultat.innerHTML = '';
   const verdict = document.createElement('p');
   verdict.className = 'verdict';
-  verdict.textContent = juste ? '✔ Bonne réponse !' : '✘ Pas tout à fait…';
+  const j = joueur();
+  if (j.robot) verdict.textContent = juste ? `✔ ${j.nom} a trouvé !` : `✘ ${j.nom} s'est trompé…`;
+  else verdict.textContent = juste ? '✔ Bonne réponse !' : '✘ Pas tout à fait…';
   resultat.appendChild(verdict);
   if (!juste || q.type === 'saisie') {
     const attendue = document.createElement('p');
@@ -321,7 +424,9 @@ function joueurSuivant(texte) {
 function victoire(j) {
   etat.phase = 'fin';
   afficherPanneau();
-  $('texte-fin').textContent = `Bravo ${j.nom}, tu as gagné !`;
+  $('texte-fin').textContent = j.robot
+    ? `${j.nom} a gagné… Prends ta revanche !`
+    : `Bravo ${j.nom}, tu as gagné !`;
   $('camembert-fin').innerHTML = dessinCamembert(j);
   ouvrir('fenetre-fin');
 }
@@ -339,7 +444,7 @@ function afficherPanneau() {
   const texte = document.createElement('span');
   texte.textContent = `Au tour de ${j.nom} `;
   const niveau = document.createElement('small');
-  niveau.textContent = `(${j.niveau === 'parents' ? 'Parents' : j.niveau})`;
+  niveau.textContent = `(${etiquette(j)})`;
   texte.appendChild(niveau);
   $('tour-de').append(pastille, texte);
 
@@ -353,12 +458,24 @@ function afficherPanneau() {
     nom.className = 'nom';
     nom.textContent = autre.nom;
     const detail = document.createElement('small');
-    detail.textContent = `${autre.niveau === 'parents' ? 'Parents' : autre.niveau} · ${autre.camemberts.size}/${etat.objectif} 🧀`;
+    detail.textContent = `${etiquette(autre)} · ${autre.camemberts.size}/${etat.objectif} 🧀`;
     nom.appendChild(detail);
     li.appendChild(nom);
     scores.appendChild(li);
   });
 }
+
+// Petit texte décrivant un joueur : « 5e », « Parents » ou « Adversaire moyen ».
+function etiquette(j) {
+  if (j.robot) return `Adversaire ${j.robot.nom.toLowerCase()}`;
+  return j.niveau === 'parents' ? 'Parents' : j.niveau;
+}
+
+// Actions retardées (déplacement, réflexion de l'adversaire…).
+// On les garde en mémoire pour pouvoir toutes les annuler si on quitte.
+let minuteries = [];
+function plusTard(action, delai) { minuteries.push(setTimeout(action, delai)); }
+function annulerMinuteries() { minuteries.forEach(clearTimeout); minuteries = []; }
 
 function message(texte) { $('message').textContent = texte; }
 function ouvrir(id) { $(id).classList.remove('cache'); }
@@ -375,6 +492,8 @@ function melanger(liste) {
 }
 
 function retourAccueil() {
+  annulerMinuteries();
+  etat.phase = 'fin';
   fermer('fenetre-fin');
   fermer('fenetre-question');
   fermer('fenetre-theme');
@@ -390,7 +509,7 @@ function retourAccueil() {
 async function demarrer() {
   afficherAccueil();
   $('bouton-commencer').onclick = commencerPartie;
-  $('bouton-de').onclick = lancerDe;
+  $('bouton-de').onclick = () => { if (!joueur().robot) lancerDe(); };
   $('bouton-rejouer').onclick = retourAccueil;
   $('bouton-quitter').onclick = () => {
     if (confirm('Quitter la partie en cours ?')) retourAccueil();

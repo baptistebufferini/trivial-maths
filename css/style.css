@@ -252,6 +252,19 @@ button:disabled { cursor: default; }
 }
 .saisie .je-sais-pas { background: #eee; color: var(--texte); font-weight: 400; }
 
+/* Bulle de l'adversaire virtuel */
+.bulle {
+  display: inline-block;
+  margin: 0 0 1rem;
+  padding: .5rem 1rem;
+  background: #fff8d6;
+  border: 2px solid #e2c84a;
+  border-radius: 16px;
+  font-size: 1.2rem;
+  font-style: italic;
+}
+.bulle::before { content: "🤖 "; font-style: normal; }
+
 /* Résultat et correction */
 #q-resultat { margin-top: 1rem; padding: .8rem 1rem; border-radius: 10px; }
 #q-resultat.juste { background: #e3f4e8; border: 2px solid var(--juste); }

@@ -54,6 +54,15 @@ const COULEURS_PIONS = [
 // Mettre false pour que le tour passe toujours au joueur suivant.
 const REJOUER_APRES_BONNE_REPONSE = true;
 
+// L'adversaire virtuel, proposé quand un joueur est seul.
+// - reussite : pourcentage de bonnes réponses de l'adversaire
+const ADVERSAIRE_NOM = 'Calculo';
+const NIVEAUX_ADVERSAIRE = [
+  { nom: 'Facile', reussite: 50 },
+  { nom: 'Moyen',  reussite: 65 },   // se trompe 35 % du temps
+  { nom: 'Fort',   reussite: 90 },
+];
+
 // Les profs et leur tableur de déblocage.
 // Le lien donné aux élèves est : adresse-du-jeu/?prof=baptiste
 // - deblocages : adresse du Google Sheet publié en CSV (étape 5).
