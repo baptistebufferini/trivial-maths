@@ -75,11 +75,65 @@ button:disabled { cursor: default; }
 
 .ligne-joueur {
   display: grid;
-  grid-template-columns: 2.2rem 1fr auto auto minmax(0, 1.3fr);
+  grid-template-columns: 2.2rem 1fr auto auto;
   gap: .5rem;
   align-items: center;
   margin-top: .7rem;
+  padding-bottom: .7rem;
+  border-bottom: 1px solid var(--bord);
 }
+.ligne-joueur:last-child { border-bottom: none; }
+
+/* Molette « Où en est-on dans la progression ? » : on la fait défiler
+   (souris ou doigt) ; le chapitre au centre, dans le cadre bleu, est choisi. */
+.bloc-progression { grid-column: 2 / -1; }
+.titre-molette { margin: .2rem 0 .3rem; font-weight: 700; font-size: .95rem; }
+.molette {
+  --hauteur-element: 2.4rem;
+  position: relative;
+  height: calc(3 * var(--hauteur-element));
+  border: 2px solid var(--bord);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+.molette-liste {
+  height: 100%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  padding: var(--hauteur-element) 0;
+  scrollbar-width: none;
+  outline: none;
+  /* les chapitres s'estompent vers le haut et vers le bas */
+  -webkit-mask-image: linear-gradient(transparent, #000 35%, #000 65%, transparent);
+  mask-image: linear-gradient(transparent, #000 35%, #000 65%, transparent);
+}
+.molette-liste::-webkit-scrollbar { display: none; }
+.molette-element {
+  height: var(--hauteur-element);
+  line-height: var(--hauteur-element);
+  scroll-snap-align: center;
+  text-align: center;
+  padding: 0 .6rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--texte-doux);
+  cursor: pointer;
+  user-select: none;
+}
+.molette-element.actif { color: var(--texte); font-weight: 700; }
+.molette-repere {
+  position: absolute;
+  left: 6px; right: 6px;
+  top: var(--hauteur-element);
+  height: var(--hauteur-element);
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  background: rgba(31, 111, 209, .08);
+  pointer-events: none;
+}
+.molette-liste:focus-visible + .molette-repere { box-shadow: 0 0 0 3px rgba(31, 111, 209, .35); }
 .ligne-joueur .pastille {
   width: 2rem; height: 2rem; border-radius: 50%;
   border: 2px solid #222;
@@ -137,6 +191,19 @@ button:disabled { cursor: default; }
   grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
   height: 100vh;
   height: 100dvh;
+  position: relative;
+  isolation: isolate;
+}
+/* Fond « salle de classe » derrière le plateau, légèrement flou et éclairci */
+#ecran-jeu::before {
+  content: '';
+  position: fixed;
+  inset: -20px;            /* déborde un peu : le flou ne laisse pas de bord clair */
+  z-index: -1;
+  background:
+    linear-gradient(rgba(255, 255, 255, .2), rgba(255, 255, 255, .2)),
+    url('../images/fond-classe.svg') center / cover no-repeat;
+  filter: blur(3px);
 }
 
 #zone-plateau {
@@ -146,10 +213,10 @@ button:disabled { cursor: default; }
   padding: .5rem;
   min-height: 0;
 }
-#plateau { width: 100%; height: 100%; max-height: 100%; }
+#plateau { width: 100%; height: 100%; max-height: 100%; filter: drop-shadow(0 10px 22px rgba(0, 0, 0, .35)); }
 
 #panneau {
-  background: var(--carte);
+  background: rgba(255, 255, 255, .93);
   border-left: 1px solid var(--bord);
   padding: 1rem;
   display: flex;
@@ -191,8 +258,60 @@ button:disabled { cursor: default; }
   background: none; border: none;
   color: var(--texte-doux); text-decoration: underline;
 }
-.liens-bas { margin-top: auto; display: flex; justify-content: space-between; gap: .5rem; }
+.liens-bas { margin-top: auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; }
 .lien-centre { text-align: center; margin: .6rem 0 0; }
+
+/* ---------------- Lancer de dé : au centre, fond flou ---------------- */
+
+.fond-de {
+  position: fixed; inset: 0;
+  z-index: 20;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1.2rem;
+  background: rgba(15, 20, 35, .35);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+}
+.de-qui, .de-resultat {
+  margin: 0;
+  color: #fff;
+  font-weight: 800;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, .6);
+}
+.de-qui { font-size: 1.4rem; }
+.de-resultat { font-size: 2.6rem; min-height: 1.3em; }
+
+/* Le dé : un cube de 6 faces en 3D (taille : --cote) */
+.scene-de { --cote: 9rem; width: var(--cote); height: var(--cote); perspective: 900px; }
+.scene-de.lance { animation: rebonds 1.3s ease-out; }
+@keyframes rebonds {
+  0%   { transform: translateY(-45vh) scale(.6); }
+  45%  { transform: translateY(0) scale(1); }
+  60%  { transform: translateY(-3.5rem); }
+  75%  { transform: translateY(0); }
+  87%  { transform: translateY(-1rem); }
+  100% { transform: translateY(0); }
+}
+.de3d { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; }
+.face {
+  position: absolute; inset: 0;
+  display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  padding: 14%;
+  background: #fffdf8;
+  border: 2px solid #e2ddd0;
+  border-radius: 18%;
+  box-shadow: inset 0 0 1.4rem rgba(0, 0, 0, .18);
+  backface-visibility: hidden;
+}
+.face .point { width: 72%; height: 72%; margin: auto; border-radius: 50%; background: #c62828; }
+.face-1 { transform: translateZ(calc(var(--cote) / 2)); }
+.face-6 { transform: rotateY(180deg) translateZ(calc(var(--cote) / 2)); }
+.face-3 { transform: rotateY(90deg) translateZ(calc(var(--cote) / 2)); }
+.face-4 { transform: rotateY(-90deg) translateZ(calc(var(--cote) / 2)); }
+.face-5 { transform: rotateX(90deg) translateZ(calc(var(--cote) / 2)); }
+.face-2 { transform: rotateX(-90deg) translateZ(calc(var(--cote) / 2)); }
+.face-2 .point, .face-3 .point, .face-4 .point, .face-5 .point, .face-6 .point { background: #222; }
+@media (prefers-reduced-motion: reduce) { .scene-de.lance { animation: none; } }
 
 /* Fenêtre des règles */
 .regles { list-style: none; padding: 0; margin: 0 0 1.2rem; display: flex; flex-direction: column; gap: .6rem; }
@@ -203,8 +322,8 @@ button:disabled { cursor: default; }
 
 .fond-plateau { fill: #fbf8f0; stroke: #d9d3c3; stroke-width: 2; }
 .case .forme { stroke: #fff; stroke-width: 4; }
-.icone-case { fill: #fff; font-size: 26px; font-weight: 700; pointer-events: none; }
-.icone-camembert { font-size: 28px; font-weight: 800; pointer-events: none; }
+.pictogramme { pointer-events: none; }
+.picto-texte { width: 1.4em; height: 1.4em; vertical-align: -.35em; margin-right: .2em; }
 .icone-rejouer { fill: #555; font-size: 40px; font-weight: 700; pointer-events: none; }
 .texte-centre { fill: #333; font-size: 24px; font-weight: 700; pointer-events: none; }
 
@@ -339,7 +458,7 @@ button:disabled { cursor: default; }
   .ligne-joueur { grid-template-columns: 2rem 1fr 1fr; }
   .ligne-joueur .pastille { grid-row: span 3; align-self: start; }
   .ligne-joueur input { grid-column: span 2; }
-  .ligne-joueur .choix-chapitre { grid-column: 2 / span 2; }
+  .ligne-joueur .bloc-progression { grid-column: 2 / span 2; }
   .enonce { font-size: 1.25rem; }
   .choix-qcm { grid-template-columns: 1fr; }
 }

@@ -23,9 +23,10 @@
       <div id="choix-nombre" class="groupe-boutons"></div>
       <div id="liste-joueurs"></div>
       <p id="aide-chapitre" class="aide">
-        📚 <strong>Où en es-tu dans l'année ?</strong> Dans la dernière liste, choisis le dernier
+        📚 <strong>Comment choisir le chapitre ?</strong> Fais tourner la molette « Où en est-on dans
+        la progression ? » avec la souris ou le doigt, jusqu'à mettre dans le cadre bleu le dernier
         chapitre vu en classe : tu auras des questions sur ce chapitre, sur ceux d'avant et sur les
-        années précédentes. Choisis « Toute l'année » pour réviser tous les chapitres.
+        années précédentes. Tout en bas, « Toute l'année » permet de réviser tous les chapitres.
       </p>
     </div>
 
@@ -64,6 +65,7 @@
       <ul id="scores"></ul>
       <div class="liens-bas">
         <button id="bouton-regles" type="button" class="bouton-discret">Règles</button>
+        <button id="bouton-son" type="button" class="bouton-discret">🔊 Son</button>
         <button id="bouton-quitter" type="button" class="bouton-discret">Quitter la partie</button>
       </div>
     </aside>
@@ -95,7 +97,14 @@
     </div>
   </div>
 
-  <!-- ===================== FENÊTRE : RÈGLES (début de partie) ===================== -->
+  <!-- ===================== LANCER DE DÉ (au centre, fond flou) ===================== -->
+  <div id="fenetre-de" class="fond-de cache" aria-live="polite">
+    <p id="de-qui" class="de-qui"></p>
+    <div id="scene-de" class="scene-de"><div id="de3d" class="de3d"></div></div>
+    <p id="de-resultat" class="de-resultat"></p>
+  </div>
+
+  <!-- ===================== FENÊTRE : RÈGLES ===================== -->
   <div id="fenetre-regles" class="fond-fenetre cache">
     <div class="fenetre" role="dialog" aria-modal="true" aria-labelledby="titre-regles">
       <div class="corps-fenetre">
@@ -140,7 +149,7 @@
       // 2) Les scripts du jeu, un par un et dans l'ordre :
       //    réglages, données, outils, puis le jeu.
       const scripts = ['js/config.js', 'data/demo.js', 'js/csv.js', 'js/verification.js',
-                       'js/banque.js', 'js/plateau.js', 'js/jeu.js'];
+                       'js/banque.js', 'js/plateau.js', 'js/de.js', 'js/jeu.js'];
       for (const fichier of scripts) {
         await new Promise((suite, erreur) => {
           const s = document.createElement('script');

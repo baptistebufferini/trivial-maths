@@ -139,12 +139,12 @@ const Plateau = {
 
       // Symbole sur la case
       if (c.type === 'camembert') {
-        groupe.appendChild(creerSVG('circle', { cx: c.x, cy: c.y, r: 30, fill: '#fff' }));
-        groupe.appendChild(creerTexte(c.x, c.y, THEMES.find(t => t.id === c.theme).icone, 'icone-camembert', couleur));
+        groupe.appendChild(creerSVG('circle', { cx: c.x, cy: c.y, r: 33, fill: '#fff' }));
+        groupe.appendChild(pictogramme(c.theme, c.x, c.y, 1.25, couleur));
       } else if (c.type === 'rejouer') {
         groupe.appendChild(creerTexte(c.x, c.y, '↻', 'icone-rejouer'));
       } else if (c.type === 'normale') {
-        groupe.appendChild(creerTexte(c.x, c.y, THEMES.find(t => t.id === c.theme).icone, 'icone-case'));
+        groupe.appendChild(pictogramme(c.theme, c.x, c.y, c.id.startsWith('a') ? 1.15 : 1, '#ffffff'));
       }
 
       groupe.addEventListener('click', () => { if (this.surClic) this.surClic(c.id); });
@@ -187,6 +187,52 @@ const Plateau = {
     });
   },
 };
+
+// ---------- Pictogrammes des thèmes ----------
+// Petits dessins tracés dans un carré de 40 × 40, centré en (x, y) :
+//   nombres   : les signes des quatre opérations
+//   donnees   : un diagramme en barres
+//   grandeurs : une règle graduée
+//   geometrie : une équerre et un cercle
+//   algo      : deux blocs de programmation emboîtés (comme dans Scratch)
+const PICTOGRAMMES = {
+  nombres: `
+    <path d="M-15 -9 H-4 M-9.5 -14.5 V-3.5 M4 -9 H15 M-14 4 L-5 13 M-14 13 L-5 4 M4 8.5 H15"/>
+    <circle cx="9.5" cy="3.8" r="1.8" class="plein"/><circle cx="9.5" cy="13.2" r="1.8" class="plein"/>`,
+  donnees: `
+    <path d="M-16 -16 V15 H17"/>
+    <rect x="-11" y="5" width="6" height="10" class="plein"/>
+    <rect x="-2" y="-11" width="6" height="26" class="plein"/>
+    <rect x="7" y="-3" width="6" height="18" class="plein"/>`,
+  grandeurs: `
+    <g transform="rotate(-35)">
+      <rect x="-19" y="-6" width="38" height="12" rx="1.5"/>
+      <path d="M-14 -6 V1 M-9 -6 V-2 M-4 -6 V1 M1 -6 V-2 M6 -6 V1 M11 -6 V-2 M16 -6 V1"/>
+    </g>`,
+  geometrie: `
+    <path d="M-16 15 V-15 L13 15 Z M-16 9 H-10 V15"/>
+    <circle cx="8" cy="-7" r="8"/>`,
+  algo: `
+    <path d="M-17 -15 H-11 L-8 -12 H-2 L1 -15 H17 V-3 H1 L-2 0 H-8 L-11 -3 H-17 Z"/>
+    <path d="M-17 2 H-11 L-8 5 H-2 L1 2 H17 V14 H-17 Z"/>`,
+};
+function pictogramme(theme, x, y, echelle, couleur) {
+  const g = creerSVG('g', {
+    transform: `translate(${x} ${y}) scale(${echelle})`, class: 'pictogramme',
+    fill: 'none', stroke: couleur, 'stroke-width': 3.2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+  });
+  g.innerHTML = PICTOGRAMMES[theme] || '';
+  g.querySelectorAll('.plein').forEach(el => { el.setAttribute('fill', couleur); el.setAttribute('stroke', 'none'); });
+  return g;
+}
+
+// Le même pictogramme, en petite image blanche à glisser dans un texte
+// (en-tête des questions, boutons). Les énigmes gardent leur « ? ».
+function pictoHTML(theme) {
+  if (!PICTOGRAMMES[theme.id]) return theme.icone;
+  return `<svg class="picto-texte" viewBox="-21 -21 42 42" aria-hidden="true" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">`
+    + PICTOGRAMMES[theme.id].replace(/class="plein"/g, 'fill="#fff" stroke="none"') + '</svg>';
+}
 
 // ---------- Petits outils de dessin ----------
 

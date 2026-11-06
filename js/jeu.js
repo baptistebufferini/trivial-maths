@@ -98,22 +98,23 @@ function afficherAccueil() {
     // Changer de niveau change la liste des chapitres : on réaffiche.
     niveau.onchange = () => { r.niveau = niveau.value; r.chapitre = ''; afficherAccueil(); };
 
-    // Chapitre en cours (pas pour les parents, qui ont tout le programme)
-    const chapitre = document.createElement('select');
-    chapitre.className = 'choix-chapitre';
-    chapitre.setAttribute('aria-label', `Chapitre en cours ${i + 1}`);
-    // Les chapitres dans l'ordre de l'année, puis « Toute l'année » (tout est ouvert).
-    // Par défaut : le premier chapitre.
-    const chapitres = Banque.chapitresAuChoix(r.niveau);
-    chapitres.forEach(c => chapitre.add(new Option(c.titre, c.chapitre)));
-    if (chapitres.length) chapitre.add(new Option('Toute l\'année (tous les chapitres)', TOUTE_ANNEE));
-    if (r.chapitre !== TOUTE_ANNEE && !chapitres.some(c => c.chapitre === r.chapitre)) r.chapitre = chapitres.length ? chapitres[0].chapitre : '';
-    chapitre.value = r.chapitre;
-    chapitre.onchange = () => { r.chapitre = chapitre.value; };
-    chapitre.title = 'Chapitre en cours en classe';
-    if (r.niveau === 'parents' || chapitres.length === 0) chapitre.style.visibility = 'hidden';
+    ligne.append(pastille, nom, couleur, niveau);
 
-    ligne.append(pastille, nom, couleur, niveau, chapitre);
+    // Chapitre en cours, choisi avec une molette (pas pour les parents,
+    // qui ont tout le programme). Les chapitres dans l'ordre de l'année,
+    // puis « Toute l'année » (tout est ouvert). Par défaut : le premier.
+    const chapitres = Banque.chapitresAuChoix(r.niveau);
+    if (r.chapitre !== TOUTE_ANNEE && !chapitres.some(c => c.chapitre === r.chapitre)) r.chapitre = chapitres.length ? chapitres[0].chapitre : '';
+    if (r.niveau !== 'parents' && chapitres.length > 0) {
+      const bloc = document.createElement('div');
+      bloc.className = 'bloc-progression';
+      const titre = document.createElement('p');
+      titre.className = 'titre-molette';
+      titre.textContent = '📚 Où en est-on dans la progression ?';
+      const options = [...chapitres.map(c => ({ valeur: c.chapitre, texte: c.titre })), { valeur: TOUTE_ANNEE, texte: 'Toute l\'année (tous les chapitres)' }];
+      bloc.append(titre, creerMolette(options, r.chapitre, (v) => { r.chapitre = v; }, `Chapitre en cours, joueur ${i + 1}`));
+      ligne.appendChild(bloc);
+    }
     liste.appendChild(ligne);
   }
   // L'explication du chapitre ne sert que s'il y a au moins un élève.
@@ -139,6 +140,57 @@ function afficherAccueil() {
     b.classList.toggle('choisi', Number(b.dataset.objectif) === etat.objectif);
     b.onclick = () => { etat.objectif = Number(b.dataset.objectif); afficherAccueil(); };
   });
+}
+
+// Molette de choix : une liste qui défile (molette de la souris, doigt sur
+// téléphone, flèches du clavier). L'élément au centre est celui choisi.
+// options : [{ valeur, texte }] ; quandChange(valeur) est appelée à chaque choix.
+function creerMolette(options, valeurInitiale, quandChange, nom) {
+  const molette = document.createElement('div');
+  molette.className = 'molette';
+  const liste = document.createElement('div');
+  liste.className = 'molette-liste';
+  liste.tabIndex = 0;
+  liste.setAttribute('role', 'listbox');
+  liste.setAttribute('aria-label', nom);
+  const elements = options.map((o) => {
+    const el = document.createElement('div');
+    el.className = 'molette-element';
+    el.setAttribute('role', 'option');
+    el.textContent = o.texte;
+    liste.appendChild(el);
+    return el;
+  });
+  const repere = document.createElement('div');
+  repere.className = 'molette-repere';
+  molette.append(liste, repere);
+
+  let rang = Math.max(0, options.findIndex(o => o.valeur === valeurInitiale));
+  const hauteur = () => elements[0].offsetHeight || 1;   // 1 : molette pas encore affichée
+  // Met en valeur l'élément choisi, et prévient si le choix a changé.
+  const choisir = (nouveau) => {
+    nouveau = Math.max(0, Math.min(options.length - 1, nouveau));
+    elements.forEach((el, k) => { el.classList.toggle('actif', k === nouveau); el.setAttribute('aria-selected', k === nouveau); });
+    if (nouveau !== rang) { rang = nouveau; quandChange(options[rang].valeur); }
+  };
+  const allerA = (nouveau, doux = true) => {
+    nouveau = Math.max(0, Math.min(options.length - 1, nouveau));
+    liste.scrollTo({ top: nouveau * hauteur(), behavior: doux ? 'smooth' : 'auto' });
+    choisir(nouveau);
+  };
+  // Pendant le défilement (doigt ou molette), l'élément au centre devient le choix.
+  liste.addEventListener('scroll', () => choisir(Math.round(liste.scrollTop / hauteur())));
+  // Molette de souris : un cran = un chapitre (et la page ne défile pas).
+  liste.addEventListener('wheel', (e) => { e.preventDefault(); allerA(rang + Math.sign(e.deltaY)); }, { passive: false });
+  liste.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); allerA(rang + 1); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); allerA(rang - 1); }
+  });
+  elements.forEach((el, k) => { el.onclick = () => allerA(k); });
+  // Position de départ, une fois la molette affichée à l'écran.
+  requestAnimationFrame(() => { liste.scrollTop = rang * hauteur(); choisir(rang); });
+  elements[rang].classList.add('actif');
+  return molette;
 }
 
 function commencerPartie() {
@@ -234,17 +286,13 @@ function lancerDe() {
   if (etat.phase !== 'lancer') return;
   etat.phase = 'roulement';
   $('bouton-de').disabled = true;
-  // Petite animation : le dé change 10 fois de face avant de s'arrêter.
-  let tours = 0;
-  const animation = setInterval(() => {
-    const valeur = 1 + Math.floor(Math.random() * 6);
+  // Le dé est tiré tout de suite, puis l'animation (js/de.js) le montre.
+  const valeur = 1 + Math.floor(Math.random() * 6);
+  De.lancer(valeur, joueur().nom, () => {
+    if (etat.phase !== 'roulement') return;
     afficherDe(valeur);
-    tours++;
-    if (tours === 10 || etat.phase !== 'roulement') {
-      clearInterval(animation);
-      if (etat.phase === 'roulement') proposerDestinations(valeur);
-    }
-  }, 70);
+    proposerDestinations(valeur);
+  });
 }
 
 function afficherDe(valeur) {
@@ -316,7 +364,7 @@ function ouvrirChoixTheme() {
     const b = document.createElement('button');
     b.type = 'button';
     b.style.background = theme.couleur;
-    b.textContent = `${theme.icone}  ${theme.nom}`;
+    b.innerHTML = `${pictoHTML(theme)} ${theme.nom}`;
     b.onclick = () => { fermer('fenetre-theme'); poserQuestion(t.id, false); };
     liste.appendChild(b);
   });
@@ -341,7 +389,7 @@ function poserQuestion(themeId, caseCamembert) {
 
   const entete = $('q-entete');
   entete.style.background = theme.couleur;
-  entete.textContent = `${theme.icone}  ${theme.nom}` + (estCamembert ? '  —  🧀 question camembert !' : '');
+  entete.innerHTML = `${pictoHTML(theme)} ${theme.nom}` + (estCamembert ? '  —  🧀 question camembert !' : '');
   $('q-joueur').textContent = `${j.nom} · ${etiquette(j)}`;
   $('q-origine').textContent = Banque.origine(q);
   $('q-enonce').textContent = q.enonce;
@@ -577,6 +625,7 @@ function retourAccueil() {
   fermer('fenetre-question');
   fermer('fenetre-theme');
   fermer('fenetre-regles');
+  fermer('fenetre-de');
   $('ecran-jeu').classList.add('cache');
   $('ecran-accueil').classList.remove('cache');
   afficherAccueil();
@@ -591,6 +640,10 @@ async function demarrer() {
   $('bouton-de').onclick = () => { if (!joueur().robot) lancerDe(); };
   $('bouton-rejouer').onclick = retourAccueil;
   $('bouton-regles').onclick = () => afficherRegles(true);
+  // Bouton du son : 🔊 activé / 🔇 coupé (choix gardé sur l'appareil)
+  const afficherSon = () => { $('bouton-son').textContent = Son.actif ? '🔊 Son' : '🔇 Son coupé'; };
+  $('bouton-son').onclick = () => { Son.basculer(); afficherSon(); };
+  afficherSon();
   $('lien-regles').onclick = () => afficherRegles(false);
   $('bouton-compris').onclick = () => fermer('fenetre-regles');
   afficherRegles(false);   // les règles s'affichent dès l'ouverture du site
