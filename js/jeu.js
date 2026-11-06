@@ -646,7 +646,10 @@ async function demarrer() {
   afficherSon();
   $('lien-regles').onclick = () => afficherRegles(false);
   $('bouton-compris').onclick = () => fermer('fenetre-regles');
-  afficherRegles(false);   // les règles s'affichent dès l'ouverture du site
+  // À l'ouverture du site : d'abord la bienvenue, puis les règles.
+  $('bouton-bienvenue').onclick = () => { fermer('fenetre-bienvenue'); afficherRegles(false); };
+  ouvrir('fenetre-bienvenue');
+  setTimeout(() => $('bouton-bienvenue').focus(), 50);
   $('bouton-quitter').onclick = () => {
     if (confirm('Quitter la partie en cours ?')) retourAccueil();
   };

@@ -313,6 +313,13 @@ button:disabled { cursor: default; }
 .face-2 .point, .face-3 .point, .face-4 .point, .face-5 .point, .face-6 .point { background: #222; }
 @media (prefers-reduced-motion: reduce) { .scene-de.lance { animation: none; } }
 
+/* Fenêtre de bienvenue */
+.bienvenue { text-align: center; }
+.bienvenue .regles { text-align: left; display: inline-flex; margin: 0 auto 1rem; }
+.bienvenue p { margin: .5rem 0; }
+.grand-emoji { font-size: 3rem; margin: 0 !important; }
+.slogan { font-size: 1.3rem; font-weight: 800; color: var(--accent); margin: 1rem 0 1.2rem !important; }
+
 /* Fenêtre des règles */
 .regles { list-style: none; padding: 0; margin: 0 0 1.2rem; display: flex; flex-direction: column; gap: .6rem; }
 .regles li { padding-left: 2rem; text-indent: -2rem; }
